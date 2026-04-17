@@ -68,11 +68,23 @@ export function GameProvider({ children }) {
   }, [userData]);
 
   const isLevelUnlocked = useCallback((theme, level) => {
+    // Check localStorage for Phase 3 progress
+    const localCompleted = JSON.parse(localStorage.getItem('completedLevels') || '{}');
+    const themeCompleted = localCompleted[theme] || 0;
+    if (level <= themeCompleted + 1) return true;
+
+    // Fallback to existing logic
     if (!userData?.unlockedLevels) return level === 1;
     return userData.unlockedLevels[theme]?.includes(level) || false;
   }, [userData]);
 
   const isLevelCompleted = useCallback((theme, level) => {
+    // Check localStorage for Phase 3 progress
+    const localCompleted = JSON.parse(localStorage.getItem('completedLevels') || '{}');
+    const themeCompleted = localCompleted[theme] || 0;
+    if (level <= themeCompleted) return true;
+
+    // Fallback to existing logic
     if (!userData?.completedLevels) return false;
     return !!userData.completedLevels[`${theme}_${level}`];
   }, [userData]);
