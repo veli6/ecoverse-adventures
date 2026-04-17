@@ -1,105 +1,483 @@
-// 75 questions: 5 themes × 15 questions each
-// Each has variants for kids/teens/adults difficulty
-const questions = {
-  plastic: [
-    { id:'p1', q:'How long does a plastic bottle take to decompose?', opts:['10 years','50 years','100 years','450 years'], ans:3, exp:'Plastic bottles take approximately 450 years to decompose in landfills.', fact:'Every minute, 1 million plastic bottles are purchased worldwide.', meme:'That bottle will outlive your great-great-grandchildren! 😱' },
-    { id:'p2', q:'What percentage of plastic has ever been recycled?', opts:['9%','25%','50%','75%'], ans:0, exp:'Only about 9% of all plastic ever produced has been recycled.', fact:'Most plastic ends up in landfills or the ocean.', meme:'9%?! We can do WAY better! 😤' },
-    { id:'p3', q:'How many marine animals are killed by plastic each year?', opts:['10,000','100,000','1 million','100 million'], ans:2, exp:'Over 1 million marine animals die from plastic pollution annually.', fact:'Sea turtles often mistake plastic bags for jellyfish.', meme:'The ocean is NOT a trash can! 🐢' },
-    { id:'p4', q:'Which country produces the most plastic waste?', opts:['India','USA','China','Brazil'], ans:2, exp:'China is the largest producer of plastic waste globally.', fact:'China produces about 60 million tons of plastic waste per year.', meme:'That is a LOT of plastic! 🏭' },
-    { id:'p5', q:'What is a microplastic?', opts:['A tiny robot','Plastic smaller than 5mm','A type of bag','Biodegradable plastic'], ans:1, exp:'Microplastics are plastic particles smaller than 5mm found everywhere.', fact:'Microplastics have been found in human blood and lungs.', meme:'Tiny but terrifying! 🔬' },
-    { id:'p6', q:'How many plastic bags are used worldwide per minute?', opts:['1,000','10,000','1 million','2 million'], ans:2, exp:'About 1 million plastic bags are used every minute globally.', fact:'The average bag is used for just 12 minutes.', meme:'12 minutes of use, 1000 years in a landfill! 💀' },
-    { id:'p7', q:'What is the Great Pacific Garbage Patch?', opts:['A recycling center','A floating island of trash','A national park','A cleaning project'], ans:1, exp:'It is a massive collection of floating trash in the Pacific Ocean, twice the size of Texas.', fact:'It contains 80,000 tons of plastic.', meme:'Texas-sized trash island? No thanks! 🗑️' },
-    { id:'p8', q:'Which item is the most common ocean pollutant?', opts:['Plastic bottles','Cigarette butts','Food wrappers','Straws'], ans:1, exp:'Cigarette butts are the #1 most littered item found in oceans.', fact:'4.5 trillion cigarette butts are littered each year.', meme:'Smokers, the ocean is not your ashtray! 🚭' },
-    { id:'p9', q:'What happens when plastic breaks down in the ocean?', opts:['It dissolves','It becomes microplastic','It evaporates','It becomes sand'], ans:1, exp:'Plastic breaks into tiny microplastic pieces that contaminate water and marine life.', fact:'Fish and shellfish we eat contain microplastics.', meme:'Plastic never truly disappears, it just gets sneakier! 🥷' },
-    { id:'p10', q:'How much plastic enters the ocean each year?', opts:['1 million tons','5 million tons','8 million tons','20 million tons'], ans:2, exp:'About 8 million metric tons of plastic enter the ocean annually.', fact:'That is like dumping a garbage truck into the ocean every minute.', meme:'One garbage truck per minute! 😵' },
-    { id:'p11', q:'What is the best alternative to plastic bags?', opts:['Paper bags','Cloth/reusable bags','No bags','Thicker plastic'], ans:1, exp:'Reusable cloth bags are the most eco-friendly alternative.', fact:'One reusable bag can replace 700 plastic bags.', meme:'Be a bag hero, not a bag villain! 🦸' },
-    { id:'p12', q:'Which ocean has the most plastic pollution?', opts:['Atlantic','Indian','Pacific','Arctic'], ans:2, exp:'The Pacific Ocean contains the most plastic pollution.', fact:'The Pacific holds over 2 trillion pieces of plastic.', meme:'Pacific? More like Plastic-fic! 🌊' },
-    { id:'p13', q:'What percentage of seabirds have eaten plastic?', opts:['10%','30%','60%','90%'], ans:3, exp:'About 90% of all seabirds have ingested plastic.', fact:'By 2050, 99% of seabird species will have eaten plastic.', meme:'9 out of 10 birds say NO to plastic! 🐦' },
-    { id:'p14', q:'How can you reduce plastic use at home?', opts:['Use more packaging','Buy bottled water','Use reusable containers','Burn plastic'], ans:2, exp:'Using reusable containers drastically reduces household plastic waste.', fact:'A family can eliminate 500 plastic items per year with reusables.', meme:'Reuse is the real superpower! 💪' },
-    { id:'p15', q:'What does BPA stand for in plastics?', opts:['Big Plastic Association','Bisphenol A','Best Plastic Award','Bio-Plastic Alternative'], ans:1, exp:'BPA (Bisphenol A) is a harmful chemical found in many plastics.', fact:'BPA can disrupt hormones and is banned in baby bottles.', meme:'BPA = Bad Plastic Additive! 🧪' },
-  ],
-  water: [
-    { id:'w1', q:'What percentage of Earth\'s water is drinkable?', opts:['1%','3%','10%','25%'], ans:0, exp:'Less than 1% of Earth\'s water is accessible fresh water for drinking.', fact:'97% of water is saltwater in oceans.', meme:'1%! Every drop truly counts! 💧' },
-    { id:'w2', q:'How much water does a leaky faucet waste per day?', opts:['1 gallon','5 gallons','20 gallons','100 gallons'], ans:1, exp:'A leaky faucet can waste about 5 gallons (20 liters) per day.', fact:'That adds up to 1,800+ gallons per year!', meme:'Drip drip drip... that is your money going down the drain! 💸' },
-    { id:'w3', q:'How much water is needed to produce 1 kg of beef?', opts:['100 liters','1,000 liters','5,000 liters','15,000 liters'], ans:3, exp:'It takes about 15,000 liters of water to produce just 1 kg of beef.', fact:'A single hamburger uses 2,400 liters of water.', meme:'That burger is THIRSTY! 🍔💧' },
-    { id:'w4', q:'What is the biggest user of fresh water?', opts:['Factories','Households','Agriculture','Power plants'], ans:2, exp:'Agriculture uses about 70% of global freshwater.', fact:'Rice farming alone uses enormous amounts of water.', meme:'Farming drinks more water than all of us combined! 🌾' },
-    { id:'w5', q:'How long can a person survive without water?', opts:['1 day','3 days','7 days','14 days'], ans:1, exp:'Humans can only survive about 3 days without water.', fact:'Your body is about 60% water.', meme:'3 days! Water is literally life! 🏜️' },
-    { id:'w6', q:'What uses more water: a bath or a 5-minute shower?', opts:['Bath','5-min shower','They are equal','Neither uses much'], ans:0, exp:'A bath uses about 70 gallons vs 10-25 gallons for a short shower.', fact:'Switching to showers saves thousands of gallons per year.', meme:'Sorry bath lovers, showers win this round! 🚿' },
-    { id:'w7', q:'Which continent has the least access to clean water?', opts:['Asia','South America','Africa','Europe'], ans:2, exp:'Africa has the lowest access to clean drinking water.', fact:'785 million people worldwide lack basic drinking water.', meme:'Clean water is a RIGHT, not a luxury! ✊' },
-    { id:'w8', q:'How much water does a typical toilet flush use?', opts:['1 gallon','3 gallons','6 gallons','10 gallons'], ans:2, exp:'Older toilets use about 6 gallons per flush.', fact:'Low-flow toilets use only 1.6 gallons per flush.', meme:'Flush wisely, save the planet! 🚽' },
-    { id:'w9', q:'What is grey water?', opts:['Dirty ocean water','Recycled household water','Rainwater','Polluted river water'], ans:1, exp:'Grey water is gently used water from sinks, showers, and laundry that can be recycled.', fact:'Grey water can be reused for irrigation and toilets.', meme:'Your shower water wants a second chance! ♻️' },
-    { id:'w10', q:'How many children die daily from water-related diseases?', opts:['100','500','1,000','2,000'], ans:2, exp:'Nearly 1,000 children under 5 die daily from diarrheal diseases linked to dirty water.', fact:'Clean water access could prevent most of these deaths.', meme:'This is preventable. Let us fix this! 😢' },
-    { id:'w11', q:'What is desalination?', opts:['Adding salt to water','Removing salt from seawater','Filtering river water','Boiling water'], ans:1, exp:'Desalination removes salt from seawater to make it drinkable.', fact:'Saudi Arabia is the world leader in desalination.', meme:'Making ocean water drinkable is like magic! 🧙' },
-    { id:'w12', q:'How much of your body is water?', opts:['30%','45%','60%','80%'], ans:2, exp:'The human body is approximately 60% water.', fact:'Your brain is 73% water!', meme:'You are basically a fancy water bottle! 🫠' },
-    { id:'w13', q:'What wastes the most water at home?', opts:['Cooking','Toilet flushing','Dishwashing','Lawn watering'], ans:3, exp:'Lawn and garden watering is the biggest household water use.', fact:'Up to 50% of outdoor water is wasted from evaporation.', meme:'Your lawn is drinking more than you! 🌿' },
-    { id:'w14', q:'What is a watershed?', opts:['A garden shed','An area where all water drains to one point','A water tank','A dam'], ans:1, exp:'A watershed is an area of land where all water drains to a common outlet.', fact:'Everyone lives in a watershed!', meme:'We are all connected by water! 🗺️' },
-    { id:'w15', q:'How can you save water while brushing teeth?', opts:['Use a bigger brush','Turn off tap while brushing','Brush faster','Use mouthwash instead'], ans:1, exp:'Turning off the tap while brushing saves up to 8 gallons per day.', fact:'That is nearly 3,000 gallons per year!', meme:'Turn it OFF! Your future self will thank you! 😁' },
-  ],
-  climate: [
-    { id:'c1', q:'What gas is the main cause of global warming?', opts:['Oxygen','Nitrogen','Carbon Dioxide','Helium'], ans:2, exp:'CO2 from burning fossil fuels is the primary greenhouse gas driving climate change.', fact:'CO2 levels are higher now than any time in 800,000 years.', meme:'CO2: the unwanted guest that won\'t leave! 🏭' },
-    { id:'c2', q:'By how much has Earth warmed since 1900?', opts:['0.1°C','0.5°C','1.1°C','3°C'], ans:2, exp:'Earth has warmed approximately 1.1°C since the pre-industrial era.', fact:'This may sound small but has massive impacts on ecosystems.', meme:'1 degree changes EVERYTHING! 🌡️' },
-    { id:'c3', q:'What is the greenhouse effect?', opts:['Growing plants indoors','Gases trapping heat in atmosphere','Painting buildings green','Solar panel effect'], ans:1, exp:'Greenhouse gases trap heat from the sun in Earth\'s atmosphere, warming the planet.', fact:'Without any greenhouse effect, Earth would be -18°C!', meme:'A little warming is good, too much is a disaster! 🥵' },
-    { id:'c4', q:'Which sector produces the most greenhouse gases?', opts:['Transportation','Agriculture','Energy/Electricity','Construction'], ans:2, exp:'Energy production and electricity generation produce about 25% of global emissions.', fact:'Coal power plants are the single largest source of CO2.', meme:'Time to pull the plug on dirty energy! 🔌' },
-    { id:'c5', q:'What is the Paris Agreement about?', opts:['Fashion show','Limiting global warming to 1.5°C','Building parks','Food safety'], ans:1, exp:'The Paris Agreement is a global pact to limit warming to 1.5°C above pre-industrial levels.', fact:'196 countries signed it in 2015.', meme:'196 countries agree: we need to act NOW! 🤝' },
-    { id:'c6', q:'What is the main effect of melting ice caps?', opts:['Colder winters','Rising sea levels','More snow','Cleaner water'], ans:1, exp:'Melting ice caps cause sea levels to rise, threatening coastal cities.', fact:'Sea levels have risen 8-9 inches since 1880.', meme:'Coastal cities: we have a problem! 🌊' },
-    { id:'c7', q:'What is your carbon footprint?', opts:['Shoe print in dirt','Total CO2 from your activities','A type of fossil','Carbon paper mark'], ans:1, exp:'Your carbon footprint is the total greenhouse gases generated by your actions.', fact:'Average American has a footprint of 16 tons CO2/year.', meme:'Time to shrink that footprint! 👣' },
-    { id:'c8', q:'Which renewable energy source produces the most power?', opts:['Wind','Solar','Hydroelectric','Geothermal'], ans:2, exp:'Hydroelectric power currently produces the most renewable energy globally.', fact:'Hydro provides about 16% of world electricity.', meme:'Water power FTW! 💪🌊' },
-    { id:'c9', q:'What causes coral bleaching?', opts:['Too much fish','Warm ocean water','Oil spills','Cold water'], ans:1, exp:'Rising ocean temperatures cause coral to expel algae, turning white and dying.', fact:'50% of the Great Barrier Reef has been bleached.', meme:'Corals are literally stressed to death! 🪸' },
-    { id:'c10', q:'What is a fossil fuel?', opts:['Dinosaur bones','Coal, oil, gas from ancient organisms','Renewable energy','Nuclear fuel'], ans:1, exp:'Fossil fuels formed from ancient plants and animals over millions of years.', fact:'Burning them releases stored carbon back into the atmosphere.', meme:'Millions of years to make, gone in seconds! ⛽' },
-    { id:'c11', q:'How much has Arctic sea ice declined since 1979?', opts:['5%','13%','30%','50%'], ans:1, exp:'Arctic sea ice has declined about 13% per decade since satellite tracking began.', fact:'Summer Arctic could be ice-free by 2050.', meme:'The Arctic is literally disappearing! 🧊' },
-    { id:'c12', q:'What is the biggest thing YOU can do for climate?', opts:['Recycle more','Vote for climate policies','Use less water','Buy organic'], ans:1, exp:'Voting and advocating for systemic climate policies has the greatest impact.', fact:'Individual action + systemic change = real progress.', meme:'Your vote is your superpower! 🗳️' },
-    { id:'c13', q:'What are carbon offsets?', opts:['Carbon filters','Paying to reduce emissions elsewhere','Carbon paper','Car modifications'], ans:1, exp:'Carbon offsets fund projects that reduce CO2 to compensate for your emissions.', fact:'Tree planting and renewable energy are popular offset projects.', meme:'Pay it forward for the planet! 🌍' },
-    { id:'c14', q:'Which country emits the most CO2?', opts:['USA','India','China','Russia'], ans:2, exp:'China is currently the largest CO2 emitter, producing about 30% of global emissions.', fact:'However, the US has the highest per capita emissions historically.', meme:'With great power comes great responsibility! 🇨🇳' },
-    { id:'c15', q:'What is net zero?', opts:['Zero internet','Balancing emissions with removal','No electricity','Zero waste'], ans:1, exp:'Net zero means removing as much CO2 from atmosphere as we emit.', fact:'Many countries aim for net zero by 2050.', meme:'Balance is key! ⚖️' },
-  ],
-  energy: [
-    { id:'e1', q:'Which uses the most energy at home?', opts:['Lights','Heating/cooling','TV','Phone charging'], ans:1, exp:'Heating and cooling accounts for about 50% of home energy use.', fact:'A programmable thermostat can save 10% on energy bills.', meme:'Your HVAC is an energy monster! 🥶🥵' },
-    { id:'e2', q:'What is solar energy?', opts:['Energy from soil','Energy from the sun','Energy from sound','Energy from salt'], ans:1, exp:'Solar energy harnesses sunlight using photovoltaic panels to generate electricity.', fact:'The sun provides enough energy in 1 hour to power Earth for a year.', meme:'The sun is literally the ultimate power source! ☀️' },
-    { id:'e3', q:'What does LED stand for?', opts:['Light Energy Device','Light Emitting Diode','Low Energy Display','Laser Emitting Device'], ans:1, exp:'LED stands for Light Emitting Diode and uses 75% less energy than incandescent bulbs.', fact:'LEDs last 25 times longer than traditional bulbs.', meme:'LEDs: small but mighty energy savers! 💡' },
-    { id:'e4', q:'What is a wind turbine?', opts:['A type of fan','A machine that converts wind to electricity','A weather tool','An airplane part'], ans:1, exp:'Wind turbines convert kinetic wind energy into electrical energy.', fact:'One turbine can power 1,500 homes.', meme:'Giant fans saving the world! 🌬️' },
-    { id:'e5', q:'What is phantom energy / vampire power?', opts:['Ghost electricity','Energy used by plugged-in but off devices','Solar energy at night','Underground energy'], ans:1, exp:'Phantom energy is electricity consumed by electronics when turned off but still plugged in.', fact:'Phantom loads cost US households $19 billion/year.', meme:'Your TV is secretly drinking power at night! 🧛' },
-    { id:'e6', q:'How much energy can insulation save?', opts:['5%','15%','30%','45%'], ans:3, exp:'Proper home insulation can reduce energy use by up to 45%.', fact:'Most homes lose 25% of heat through the roof.', meme:'Wrap your house like a cozy burrito! 🌯' },
-    { id:'e7', q:'What is geothermal energy?', opts:['Energy from gems','Heat from inside the Earth','Energy from gravity','Energy from glaciers'], ans:1, exp:'Geothermal energy uses heat from within Earth\'s crust for power and heating.', fact:'Iceland gets 25% of its electricity from geothermal.', meme:'Earth has its own built-in heater! 🌋' },
-    { id:'e8', q:'What is the most efficient way to cook?', opts:['Open fire','Gas stove','Electric oven','Microwave/induction'], ans:3, exp:'Microwaves and induction cooktops are the most energy-efficient cooking methods.', fact:'Microwaves use 80% less energy than conventional ovens.', meme:'Ding! Your food AND the planet thank you! 🍲' },
-    { id:'e9', q:'What is an energy audit?', opts:['Music audit','Assessment of home energy use','Power plant inspection','Electric bill'], ans:1, exp:'An energy audit identifies where your home wastes energy and how to improve.', fact:'Audits can reveal savings of 5-30% on energy bills.', meme:'Know thy energy waste! 🔍' },
-    { id:'e10', q:'What color roof reflects the most heat?', opts:['Black','Red','Brown','White'], ans:3, exp:'White or light-colored roofs reflect sunlight, reducing cooling energy needs by up to 40%.', fact:'Cool roofs can lower roof temperature by 50°F.', meme:'White roofs = cool roofs = cool planet! 🏠' },
-    { id:'e11', q:'What is nuclear energy?', opts:['Energy from nucleus of atoms','Energy from space','Chemical energy','Energy from mountains'], ans:0, exp:'Nuclear energy splits atoms to release massive amounts of energy with zero direct CO2.', fact:'Nuclear provides 10% of global electricity.', meme:'Splitting atoms for a brighter future! ⚛️' },
-    { id:'e12', q:'How much energy does a smart power strip save?', opts:['1%','5-10%','20%','50%'], ans:1, exp:'Smart power strips eliminate phantom loads, saving 5-10% on electricity.', fact:'They automatically cut power to idle devices.', meme:'Smart strips are smarter than regular strips! 🧠' },
-    { id:'e13', q:'What is biomass energy?', opts:['Body energy','Energy from organic matter','Battery energy','Brain energy'], ans:1, exp:'Biomass energy comes from burning or converting organic materials like wood and crops.', fact:'Biomass can be carbon neutral when managed sustainably.', meme:'Trash to treasure to energy! 🌾' },
-    { id:'e14', q:'How can you save energy with laundry?', opts:['Use hot water','Wash in cold water','Use more detergent','Dry on highest heat'], ans:1, exp:'Washing in cold water saves 90% of the energy used per load.', fact:'Cold water cleans just as effectively for most clothes.', meme:'Cold wash = hot savings! 🧺' },
-    { id:'e15', q:'What percentage of energy is wasted in traditional power plants?', opts:['10%','30%','60%','80%'], ans:2, exp:'Traditional fossil fuel plants waste about 60% of energy as heat.', fact:'Combined heat and power systems can use 80% of energy.', meme:'60% wasted?! That is incredibly inefficient! 😤' },
-  ],
-  wildlife: [
-    { id:'wl1', q:'How many species go extinct each day?', opts:['1','10','75','150'], ans:3, exp:'Scientists estimate 150 species go extinct every day due to human activity.', fact:'We are in the 6th mass extinction event.', meme:'150 per DAY! This is a crisis! 🚨' },
-    { id:'wl2', q:'What is the biggest threat to wildlife?', opts:['Pollution','Climate change','Habitat loss','Hunting'], ans:2, exp:'Habitat destruction from deforestation and development is the #1 threat.', fact:'We lose 18.7 million acres of forest per year.', meme:'No home = no survival! 🏚️' },
-    { id:'wl3', q:'Which animal is most endangered?', opts:['Elephant','Amur Leopard','Panda','Tiger'], ans:1, exp:'The Amur Leopard is critically endangered with fewer than 100 in the wild.', fact:'They live in the forests of Russia and China.', meme:'Less than 100! Every single one matters! 🐆' },
-    { id:'wl4', q:'What is biodiversity?', opts:['Bio technology','Variety of all living species','A type of diet','Biological diversity of one species'], ans:1, exp:'Biodiversity is the variety of all living things and their ecosystems on Earth.', fact:'Healthy biodiversity provides food, medicine, and clean air.', meme:'Variety is the spice of LIFE! 🌈' },
-    { id:'wl5', q:'Why are bees important?', opts:['They make wax','They pollinate 75% of crops','They eat pests','They clean water'], ans:1, exp:'Bees pollinate about 75% of the world\'s food crops.', fact:'Without bees, we would lose most fruits and vegetables.', meme:'No bees = no food = big problem! 🐝' },
-    { id:'wl6', q:'What is poaching?', opts:['Cooking eggs','Illegal hunting of wildlife','Fishing','Animal training'], ans:1, exp:'Poaching is the illegal hunting or capturing of wild animals.', fact:'A rhino is killed every 22 hours for its horn.', meme:'Poaching is NOT cool. Period. 🚫' },
-    { id:'wl7', q:'How many trees are cut down each year?', opts:['1 million','15 billion','100 billion','1 trillion'], ans:1, exp:'About 15 billion trees are cut down every year worldwide.', fact:'We have lost 46% of all trees since human civilization began.', meme:'15 BILLION trees! Plant more! 🌲' },
-    { id:'wl8', q:'What is a keystone species?', opts:['A stone-eating animal','A species critical to ecosystem function','The biggest animal','An extinct species'], ans:1, exp:'A keystone species has a disproportionately large effect on its ecosystem.', fact:'Wolves in Yellowstone changed entire river courses!', meme:'One species can change EVERYTHING! 🐺' },
-    { id:'wl9', q:'What does IUCN Red List track?', opts:['Red animals','Endangered species globally','Red Cross activities','Blood donations'], ans:1, exp:'The IUCN Red List is the world\'s most comprehensive inventory of species\' conservation status.', fact:'Over 42,000 species are currently threatened.', meme:'42,000 species need our help RIGHT NOW! 📋' },
-    { id:'wl10', q:'How do coral reefs help wildlife?', opts:['They are decorative','They shelter 25% of marine species','They filter air','They produce oxygen only'], ans:1, exp:'Coral reefs support about 25% of all marine species despite covering less than 1% of the ocean floor.', fact:'Reefs are called the rainforests of the sea.', meme:'Tiny corals, HUGE impact! 🪸' },
-    { id:'wl11', q:'What is rewilding?', opts:['Going camping','Restoring natural ecosystems','Building new zoos','Growing gardens'], ans:1, exp:'Rewilding is large-scale conservation to restore natural processes and wilderness areas.', fact:'Europe has rewilded areas larger than some countries.', meme:'Let nature be nature! 🌿' },
-    { id:'wl12', q:'Why is deforestation bad for animals?', opts:['Less shade','Destroys their habitats','Makes them cold','Reduces tourism'], ans:1, exp:'Deforestation destroys the habitats that animals need for food, shelter, and reproduction.', fact:'80% of land animals live in forests.', meme:'Imagine someone bulldozing YOUR home! 🏗️' },
-    { id:'wl13', q:'What is an invasive species?', opts:['A large animal','A non-native species that causes harm','Any insect','A rare species'], ans:1, exp:'Invasive species are non-native organisms that cause ecological or economic damage.', fact:'Invasive species cost the global economy $423 billion per year.', meme:'Uninvited guests causing chaos! 🦀' },
-    { id:'wl14', q:'How can you help protect wildlife?', opts:['Keep exotic pets','Support conservation organizations','Ignore the issue','Use more paper'], ans:1, exp:'Supporting conservation organizations helps fund habitat protection and species recovery.', fact:'Even small donations can protect acres of habitat.', meme:'Be a wildlife hero from your couch! 🦸' },
-    { id:'wl15', q:'What percentage of the Amazon has been destroyed?', opts:['5%','17%','35%','50%'], ans:1, exp:'About 17% of the Amazon rainforest has been destroyed in the last 50 years.', fact:'The Amazon produces 20% of the world\'s oxygen.', meme:'17% of Earth\'s lungs GONE! 😱' },
-  ],
-};
+const questions = [
+  // --- CLIMATE ---
+  // Level 1 - Kid
+  { id: "climate-1-kid-1", theme: "Climate", level: 1, ageGroup: "Kid", question: "Which of these helps the planet stay cool?", options: ["Cutting trees", "Planting trees", "Leaving lights on", "Driving cars"], correctAnswer: 1 },
+  { id: "climate-1-kid-2", theme: "Climate", level: 1, ageGroup: "Kid", question: "What is the sun used for in 'solar' power?", options: ["Cooking", "Electricity", "Making rain", "Painting"], correctAnswer: 1 },
+  { id: "climate-1-kid-3", theme: "Climate", level: 1, ageGroup: "Kid", question: "What should you do with lights when leaving a room?", options: ["Leave on", "Turn off", "Break them", "Nothing"], correctAnswer: 1 },
+  { id: "climate-1-kid-4", theme: "Climate", level: 1, ageGroup: "Kid", question: "Which animal likes the cold Arctic ice?", options: ["Lion", "Elephant", "Polar Bear", "Monkey"], correctAnswer: 2 },
+  { id: "climate-1-kid-5", theme: "Climate", level: 1, ageGroup: "Kid", question: "Best way to travel nearby?", options: ["Plane", "Truck", "Walk or bike", "Rocket"], correctAnswer: 2 },
+  // Level 1 - Teen
+  { id: "climate-1-teen-1", theme: "Climate", level: 1, ageGroup: "Teen", question: "Main cause of global warming?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], correctAnswer: 2 },
+  { id: "climate-1-teen-2", theme: "Climate", level: 1, ageGroup: "Teen", question: "Which is renewable?", options: ["Coal", "Solar Power", "Natural Gas", "Oil"], correctAnswer: 1 },
+  { id: "climate-1-teen-3", theme: "Climate", level: 1, ageGroup: "Teen", question: "Effect of Earth warming?", options: ["Ice melts", "More ice", "Nothing", "Tides stop"], correctAnswer: 0 },
+  { id: "climate-1-teen-4", theme: "Climate", level: 1, ageGroup: "Teen", question: "What is Greenhouse Effect?", options: ["Green paint", "Gases trapping heat", "Gardens", "Vegetables"], correctAnswer: 1 },
+  { id: "climate-1-teen-5", theme: "Climate", level: 1, ageGroup: "Teen", question: "Highest carbon footprint?", options: ["Biking", "Local food", "Flying", "Walking"], correctAnswer: 2 },
+  // Level 1 - Adult
+  { id: "climate-1-adult-1", theme: "Climate", level: 1, ageGroup: "Adult", question: "Paris Agreement goal?", options: ["New cities", "1.5°C limit", "More oil", "Plastic reduction"], correctAnswer: 1 },
+  { id: "climate-1-adult-2", theme: "Climate", level: 1, ageGroup: "Adult", question: "What is Net Zero?", options: ["Zero people", "Balance emitted/removed CO2", "No web", "Zero waste"], correctAnswer: 1 },
+  { id: "climate-1-adult-3", theme: "Climate", level: 1, ageGroup: "Adult", question: "Top GHG emitting sector?", options: ["Agri", "Transport", "Energy", "Fashion"], correctAnswer: 2 },
+  { id: "climate-1-adult-4", theme: "Climate", level: 1, ageGroup: "Adult", question: "What is IPCC?", options: ["Plastic Corp", "Climate Panel", "Planet Center", "Power Committee"], correctAnswer: 1 },
+  { id: "climate-1-adult-5", theme: "Climate", level: 1, ageGroup: "Adult", question: "Climate change definition?", options: ["Daily weather", "Long-term shifts", "Seasonality", "Tides"], correctAnswer: 1 },
 
-// Get questions for a specific level (3 questions per level, no repeats)
-export function getLevelQuestions(theme, level, usedIds = []) {
-  const pool = questions[theme] || [];
-  const available = pool.filter(q => !usedIds.includes(q.id));
-  const start = (level - 1) * 3;
-  const subset = available.length >= 3 ? available.slice(start, start + 3) : available.slice(0, 3);
-  // Shuffle
-  for (let i = subset.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [subset[i], subset[j]] = [subset[j], subset[i]];
-  }
-  return subset.length > 0 ? subset : pool.slice(0, 3);
-}
+  // Level 2 - Kid
+  { id: "climate-2-kid-1", theme: "Climate", level: 2, ageGroup: "Kid", question: "What is a 'solar panel'?", options: ["Mirror", "Heat catcher", "Electricity maker from sun", "Table"], correctAnswer: 2 },
+  { id: "climate-2-kid-2", theme: "Climate", level: 2, ageGroup: "Kid", question: "Where should trees go?", options: ["Everywhere", "Inside only", "In the sea", "In a box"], correctAnswer: 0 },
+  { id: "climate-2-kid-3", theme: "Climate", level: 2, ageGroup: "Kid", question: "Is recycling good?", options: ["No", "Yes", "Maybe", "Sometimes"], correctAnswer: 1 },
+  { id: "climate-2-kid-4", theme: "Climate", level: 2, ageGroup: "Kid", question: "Zero gas transport?", options: ["Car", "Bike", "Plane", "Bus"], correctAnswer: 1 },
+  { id: "climate-2-kid-5", theme: "Climate", level: 2, ageGroup: "Kid", question: "Hot ice means?", options: ["More ice", "Melted ice", "Green ice", "Hard ice"], correctAnswer: 1 },
+  // Level 2 - Teen
+  { id: "climate-2-teen-1", theme: "Climate", level: 2, ageGroup: "Teen", question: "Which is a fossil fuel?", options: ["Wind", "Solar", "Coal", "Water"], correctAnswer: 2 },
+  { id: "climate-2-teen-2", theme: "Climate", level: 2, ageGroup: "Teen", question: "Ocean acidification cause?", options: ["Salt", "CO2 absorption", "Fish", "Plastic"], correctAnswer: 1 },
+  { id: "climate-2-teen-3", theme: "Climate", level: 2, ageGroup: "Teen", question: "Melting sea ice affects?", options: ["Monkeys", "Polar bears", "Lions", "Camels"], correctAnswer: 1 },
+  { id: "climate-2-teen-4", theme: "Climate", level: 2, ageGroup: "Teen", question: "What is a carbon sink?", options: ["Kitchen sink", "Forests/Oceans", "Mine", "Factory"], correctAnswer: 1 },
+  { id: "climate-2-teen-5", theme: "Climate", level: 2, ageGroup: "Teen", question: "Global warming impact?", options: ["Bigger Arctic", "Extreme weather", "Less rain only", "No sun"], correctAnswer: 1 },
+  // Level 2 - Adult
+  { id: "climate-2-adult-1", theme: "Climate", level: 2, ageGroup: "Adult", question: "Methane source?", options: ["Rice fields", "Livestock", "Landfills", "All above"], correctAnswer: 3 },
+  { id: "climate-2-adult-2", theme: "Climate", level: 2, ageGroup: "Adult", question: "Albedo effect?", options: ["Light absorption", "Light reflection", "Heat storage", "Air flow"], correctAnswer: 1 },
+  { id: "climate-2-adult-3", theme: "Climate", level: 2, ageGroup: "Adult", question: "Carbon pricing?", options: ["Tax on emissions", "Selling coal", "Buying trees", "Free energy"], correctAnswer: 0 },
+  { id: "climate-2-adult-4", theme: "Climate", level: 2, ageGroup: "Adult", question: "Tipping point?", options: ["Small change", "Irreversible threshold", "Ice melting slowly", "Wind shift"], correctAnswer: 1 },
+  { id: "climate-2-adult-5", theme: "Climate", level: 2, ageGroup: "Adult", question: "Deforestation effect?", options: ["More O2", "Loss of biodiversity/Carbon", "Better soil", "Cooler air"], correctAnswer: 1 },
+
+  // Level 3 - Kid
+  { id: "climate-3-kid-1", theme: "Climate", level: 3, ageGroup: "Kid", question: "What is 'renewable'?", options: ["Never ends", "Dirty", "Old", "Slow"], correctAnswer: 0 },
+  { id: "climate-3-kid-2", theme: "Climate", level: 3, ageGroup: "Kid", question: "Wind turbine power?", options: ["Sun", "Wind", "Water", "Coal"], correctAnswer: 1 },
+  { id: "climate-3-kid-3", theme: "Climate", level: 3, ageGroup: "Kid", question: "Does meat help Earth?", options: ["Yes", "No, plants are better", "Maybe", "Always"], correctAnswer: 1 },
+  { id: "climate-3-kid-4", theme: "Climate", level: 3, ageGroup: "Kid", question: "Protecting nature?", options: ["Cut trees", "Save animals", "Burn trash", "Build mall"], correctAnswer: 1 },
+  { id: "climate-3-kid-5", theme: "Climate", level: 3, ageGroup: "Kid", question: "Earth's blanket?", options: ["Atmosphere", "Clouds", "Space", "Ground"], correctAnswer: 0 },
+  // Level 3 - Teen
+  { id: "climate-3-teen-1", theme: "Climate", level: 3, ageGroup: "Teen", question: "Permafrost melting risk?", options: ["New land", "Methane release", "Colder air", "More snow"], correctAnswer: 1 },
+  { id: "climate-3-teen-2", theme: "Climate", level: 3, ageGroup: "Teen", question: "COP meetings purpose?", options: ["Trade", "Climate action", "War", "Sports"], correctAnswer: 1 },
+  { id: "climate-3-teen-3", theme: "Climate", level: 3, ageGroup: "Teen", question: "Anthropogenic means?", options: ["Natural", "Human-caused", "Ancient", "Space-based"], correctAnswer: 1 },
+  { id: "climate-3-teen-4", theme: "Climate", level: 3, ageGroup: "Teen", question: "Climate vs Weather?", options: ["Same", "Long-term vs Short-term", "Rain vs Sun", "Old vs New"], correctAnswer: 1 },
+  { id: "climate-3-teen-5", theme: "Climate", level: 3, ageGroup: "Teen", question: "Solar cell efficiency?", options: ["100%", "Approx 20%", "50%", "5%"], correctAnswer: 1 },
+  // Level 3 - Adult
+  { id: "climate-3-adult-1", theme: "Climate", level: 3, ageGroup: "Adult", question: "Radiative forcing?", options: ["Light power", "Energy balance change", "Wind speed", "Gravity"], correctAnswer: 1 },
+  { id: "climate-3-adult-2", theme: "Climate", level: 3, ageGroup: "Adult", question: "Ocean conveyor belt?", options: ["Fish movement", "Thermohaline circulation", "Waves", "Tides"], correctAnswer: 1 },
+  { id: "climate-3-adult-3", theme: "Climate", level: 3, ageGroup: "Adult", question: "Carbon sequestration?", options: ["Burning coal", "Capturing/storing CO2", "Selling carbon", "Mining"], correctAnswer: 1 },
+  { id: "climate-3-adult-4", theme: "Climate", level: 3, ageGroup: "Adult", question: "Mitigation vs Adaptation?", options: ["Same", "Reducing vs Coping", "Buying vs Selling", "Hot vs Cold"], correctAnswer: 1 },
+  { id: "climate-3-adult-5", theme: "Climate", level: 3, ageGroup: "Adult", question: "Kyoto Protocol focus?", options: ["Plastic", "Emission reductions", "Water", "Forests"], correctAnswer: 1 },
+
+  // Level 4 - Kid
+  { id: "climate-4-kid-1", theme: "Climate", level: 4, ageGroup: "Kid", question: "What is compost?", options: ["Magic", "Rotting food for plants", "Trash", "Toy"], correctAnswer: 1 },
+  { id: "climate-4-kid-2", theme: "Climate", level: 4, ageGroup: "Kid", question: "Bees help by?", options: ["Stinging", "Pollinating", "Sleeping", "Dancing"], correctAnswer: 1 },
+  { id: "climate-4-kid-3", theme: "Climate", level: 4, ageGroup: "Kid", question: "Oceans help Earth?", options: ["Yes, absorb heat", "No, too big", "Maybe", "Only for fish"], correctAnswer: 0 },
+  { id: "climate-4-kid-4", theme: "Climate", level: 4, ageGroup: "Kid", question: "Save water by?", options: ["Tap off", "Tap on", "Short shower", "Both A/C"], correctAnswer: 3 },
+  { id: "climate-4-kid-5", theme: "Climate", level: 4, ageGroup: "Kid", question: "Earth Day is?", options: ["April 22", "Jan 1", "Dec 25", "Halloween"], correctAnswer: 0 },
+  // Level 4 - Teen
+  { id: "climate-4-teen-1", theme: "Climate", level: 4, ageGroup: "Teen", question: "Feedback loops?", options: ["Repeat", "Amplify changes", "Stop climate", "Cooling"], correctAnswer: 1 },
+  { id: "climate-4-teen-2", theme: "Climate", level: 4, ageGroup: "Teen", question: "GHG Global Warming Potential?", options: ["Size", "Heat trapping capacity", "Weight", "Speed"], correctAnswer: 1 },
+  { id: "climate-4-teen-3", theme: "Climate", level: 4, ageGroup: "Teen", question: "Greenwashing?", options: ["Cleaning", "Misleading eco-claims", "Painting", "Gardening"], correctAnswer: 1 },
+  { id: "climate-4-teen-4", theme: "Climate", level: 4, ageGroup: "Teen", question: "Transition risk?", options: ["Moving", "Economic shift to green", "Running", "Falling"], correctAnswer: 1 },
+  { id: "climate-4-teen-5", theme: "Climate", level: 4, ageGroup: "Teen", question: "Circular economy?", options: ["Round", "Reducing waste/reuse", "Flat", "Selling"], correctAnswer: 1 },
+  // Level 4 - Adult
+  { id: "climate-4-adult-1", theme: "Climate", level: 4, ageGroup: "Adult", question: "Climate sensitivity?", options: ["Feeling", "Temp rise per doubled CO2", "Sensitivity to sun", "Rainfall"], correctAnswer: 1 },
+  { id: "climate-4-adult-2", theme: "Climate", level: 4, ageGroup: "Adult", question: "Scope 3 emissions?", options: ["Direct", "Electricity", "Value chain", "Flights only"], correctAnswer: 2 },
+  { id: "climate-4-adult-3", theme: "Climate", level: 4, ageGroup: "Adult", question: "Stratospheric cooling?", options: ["Wind", "CO2 effect aloft", "Sun", "Ice"], correctAnswer: 1 },
+  { id: "climate-4-adult-4", theme: "Climate", level: 4, ageGroup: "Adult", question: "Negative emissions?", options: ["Bad", "CO2 removal", "Less rain", "None"], correctAnswer: 1 },
+  { id: "climate-4-adult-5", theme: "Climate", level: 4, ageGroup: "Adult", question: "Social cost of carbon?", options: ["Price", "Economic damage per ton", "Tax", "Fee"], correctAnswer: 1 },
+
+  // Level 5 - Kid
+  { id: "climate-5-kid-1", theme: "Climate", level: 5, ageGroup: "Kid", question: "Can kids help Earth?", options: ["No", "Yes, small steps", "Maybe", "Later"], correctAnswer: 1 },
+  { id: "climate-5-kid-2", theme: "Climate", level: 5, ageGroup: "Kid", question: "Sharing toys helps?", options: ["Yes, less waste", "No", "Maybe", "Sometimes"], correctAnswer: 0 },
+  { id: "climate-5-kid-3", theme: "Climate", level: 5, ageGroup: "Kid", question: "Turn off iPad?", options: ["Save energy", "No", "Play more", "Charging"], correctAnswer: 0 },
+  { id: "climate-5-kid-4", theme: "Climate", level: 5, ageGroup: "Kid", question: "Love nature?", options: ["Protect it", "Break it", "Ignore it", "Watch TV"], correctAnswer: 0 },
+  { id: "climate-5-kid-5", theme: "Climate", level: 5, ageGroup: "Kid", question: "Be an EcoWarrior?", options: ["Yes!", "No", "Later", "Maybe"], correctAnswer: 0 },
+  // Level 5 - Teen
+  { id: "climate-5-teen-1", theme: "Climate", level: 5, ageGroup: "Teen", question: "Divestment?", options: ["Investing", "Withdrawing from fossils", "Selling", "Buying"], correctAnswer: 1 },
+  { id: "climate-5-teen-2", theme: "Climate", level: 5, ageGroup: "Teen", question: "Intergenerational equity?", options: ["Fairness to future", "Old people", "Money", "Taxes"], correctAnswer: 0 },
+  { id: "climate-5-teen-3", theme: "Climate", level: 5, ageGroup: "Teen", question: "Regenerative agriculture?", options: ["Old", "Soil-restoring", "Chemical", "Milling"], correctAnswer: 1 },
+  { id: "climate-5-teen-4", theme: "Climate", level: 5, ageGroup: "Teen", question: "Climate justice?", options: ["Law", "Ethical dimension", "Police", "Penalty"], correctAnswer: 1 },
+  { id: "climate-5-teen-5", theme: "Climate", level: 5, ageGroup: "Teen", question: "Systemic change?", options: ["Small", "Overhauling systems", "Fast", "Slow"], correctAnswer: 1 },
+  // Level 5 - Adult
+  { id: "climate-5-adult-1", theme: "Climate", level: 5, ageGroup: "Adult", question: "Earth system models?", options: ["Toys", "Complex simulations", "Maps", "Charts"], correctAnswer: 1 },
+  { id: "climate-5-adult-2", theme: "Climate", level: 5, ageGroup: "Adult", question: "Degrowth?", options: ["Growing", "Resource reduction focus", "Shrinking", "Milling"], correctAnswer: 1 },
+  { id: "climate-5-adult-3", theme: "Climate", level: 5, ageGroup: "Adult", question: "Planetary boundaries?", options: ["Limits to safe Earth", "Maps", "Walls", "Fences"], correctAnswer: 0 },
+  { id: "climate-5-adult-4", theme: "Climate", level: 5, ageGroup: "Adult", question: "Just transition?", options: ["Fair shift for workers", "Fast move", "Slow", "None"], correctAnswer: 0 },
+  { id: "climate-5-adult-5", theme: "Climate", level: 5, ageGroup: "Adult", question: "ESG metrics?", options: ["Scores", "Env/Social/Gov criteria", "Money", "Sales"], correctAnswer: 1 },
+
+  // --- WILDLIFE ---
+  // Level 1 - Kid
+  { id: "wildlife-1-kid-1", theme: "Wildlife", level: 1, ageGroup: "Kid", question: "Tigers live where?", options: ["Jungle", "Sea", "Sky", "Mall"], correctAnswer: 0 },
+  { id: "wildlife-1-kid-2", theme: "Wildlife", level: 1, ageGroup: "Kid", question: "Long neck animal?", options: ["Hippo", "Giraffe", "Rabbit", "Dog"], correctAnswer: 1 },
+  { id: "wildlife-1-kid-3", theme: "Wildlife", level: 1, ageGroup: "Kid", question: "Bees make?", options: ["Milk", "Honey", "Juice", "Wax"], correctAnswer: 1 },
+  { id: "wildlife-1-kid-4", theme: "Wildlife", level: 1, ageGroup: "Kid", question: "Baby frog?", options: ["Pup", "Tadpole", "Chick", "Kitten"], correctAnswer: 1 },
+  { id: "wildlife-1-kid-5", theme: "Wildlife", level: 1, ageGroup: "Kid", question: "Bird home?", options: ["Nest", "Cave", "Ocean", "Car"], correctAnswer: 0 },
+  // Level 1 - Teen
+  { id: "wildlife-1-teen-1", theme: "Wildlife", level: 1, ageGroup: "Teen", question: "Endangered definition?", options: ["Dangerous", "Risk of extinction", "Fast", "Small"], correctAnswer: 1 },
+  { id: "wildlife-1-teen-2", theme: "Wildlife", level: 1, ageGroup: "Teen", question: "Main wildlife threat?", options: ["Old age", "Habitat loss", "Food", "Cold"], correctAnswer: 1 },
+  { id: "wildlife-1-teen-3", theme: "Wildlife", level: 1, ageGroup: "Teen", question: "What is poaching?", options: ["Cooking", "Illegal hunting", "Fishing", "Training"], correctAnswer: 1 },
+  { id: "wildlife-1-teen-4", theme: "Wildlife", level: 1, ageGroup: "Teen", question: "Migratory animals?", options: ["Sleep", "Travel far seasonally", "Run", "Hide"], correctAnswer: 1 },
+  { id: "wildlife-1-teen-5", theme: "Wildlife", level: 1, ageGroup: "Teen", question: "Herbivore eats?", options: ["Meat", "Plants", "Bugs", "Rocks"], correctAnswer: 1 },
+  // Level 1 - Adult
+  { id: "wildlife-1-adult-1", theme: "Wildlife", level: 1, ageGroup: "Adult", question: "Biodiversity?", options: ["Technology", "Variety of life", "Diet", "Biology"], correctAnswer: 1 },
+  { id: "wildlife-1-adult-2", theme: "Wildlife", level: 1, ageGroup: "Adult", question: "Keystone species?", options: ["Stone-eater", "Critical impact on system", "Large animal", "Extinct"], correctAnswer: 1 },
+  { id: "wildlife-1-adult-3", theme: "Wildlife", level: 1, ageGroup: "Adult", question: "IUCN Red List?", options: ["Colors", "Threatened species info", "Maps", "Phones"], correctAnswer: 1 },
+  { id: "wildlife-1-adult-4", theme: "Wildlife", level: 1, ageGroup: "Adult", question: "Invasive species?", options: ["Big", "Non-native harming eco", "Small", "Rare"], correctAnswer: 1 },
+  { id: "wildlife-1-adult-5", theme: "Wildlife", level: 1, ageGroup: "Adult", question: "Rewilding?", options: ["Camping", "Restoring wilderness", "Zoos", "Gardens"], correctAnswer: 1 },
+
+  // Level 2 - Kid
+  { id: "wildlife-2-kid-1", theme: "Wildlife", level: 2, ageGroup: "Kid", question: "Where do monkeys live?", options: ["Trees", "Ocean", "Desert", "Ice"], correctAnswer: 0 },
+  { id: "wildlife-2-kid-2", theme: "Wildlife", level: 2, ageGroup: "Kid", question: "Elephants use trunks to?", options: ["Drink water", "Fly", "Dance", "Sleep"], correctAnswer: 0 },
+  { id: "wildlife-2-kid-3", theme: "Wildlife", level: 2, ageGroup: "Kid", question: "Kangaroo baby is a?", options: ["Puppy", "Joey", "Kitten", "Chick"], correctAnswer: 1 },
+  { id: "wildlife-2-kid-4", theme: "Wildlife", level: 2, ageGroup: "Kid", question: "Zebras have?", options: ["Spots", "Stripes", "Wings", "Horns"], correctAnswer: 1 },
+  { id: "wildlife-2-kid-5", theme: "Wildlife", level: 2, ageGroup: "Kid", question: "Owl is active at?", options: ["Day", "Night", "Noon", "Morning"], correctAnswer: 1 },
+  // Level 2 - Teen
+  { id: "wildlife-2-teen-1", theme: "Wildlife", level: 2, ageGroup: "Teen", question: "What is an ecosystem?", options: ["A computer", "Living things + environment", "A forest only", "Space"], correctAnswer: 1 },
+  { id: "wildlife-2-teen-2", theme: "Wildlife", level: 2, ageGroup: "Teen", question: "Camouflage helps animals?", options: ["Eat", "Hide from predators", "Fly", "Sing"], correctAnswer: 1 },
+  { id: "wildlife-2-teen-3", theme: "Wildlife", level: 2, ageGroup: "Teen", question: "Whale sharks eat?", options: ["People", "Plankton", "Tigers", "Birds"], correctAnswer: 1 },
+  { id: "wildlife-2-teen-4", theme: "Wildlife", level: 2, ageGroup: "Teen", question: "Apex predator?", options: ["Grass", "Top of food chain", "Small bug", "Plant"], correctAnswer: 1 },
+  { id: "wildlife-2-teen-5", theme: "Wildlife", level: 2, ageGroup: "Teen", question: "Hibernation?", options: ["Running", "Deep sleep in winter", "Flying", "Swimming"], correctAnswer: 1 },
+  // Level 2 - Adult
+  { id: "wildlife-2-adult-1", theme: "Wildlife", level: 2, ageGroup: "Adult", question: "Endemic species?", options: ["Widespread", "Native to one place", "Extinct", "Big"], correctAnswer: 1 },
+  { id: "wildlife-2-adult-2", theme: "Wildlife", level: 2, ageGroup: "Adult", question: "Trophic cascade?", options: ["Water", "Chain reaction in ecosystem", "Mountain", "Wind"], correctAnswer: 1 },
+  { id: "wildlife-2-adult-3", theme: "Wildlife", level: 2, ageGroup: "Adult", question: "Corridor for wildlife?", options: ["Room", "Safe path between habitats", "Road", "Fence"], correctAnswer: 1 },
+  { id: "wildlife-2-adult-4", theme: "Wildlife", level: 2, ageGroup: "Adult", question: "Flagship species?", options: ["Common", "Iconic species for conservation", "Dead", "Small"], correctAnswer: 1 },
+  { id: "wildlife-2-adult-5", theme: "Wildlife", level: 2, ageGroup: "Adult", question: "Ex-situ conservation?", options: ["In nature", "Outside natural habitat (Zoos)", "Both", "None"], correctAnswer: 1 },
+
+  // Level 3 - Kid
+  { id: "wildlife-3-kid-1", theme: "Wildlife", level: 3, ageGroup: "Kid", question: "Bees help flowers?", options: ["Yes, pollinate", "No", "Maybe", "Later"], correctAnswer: 0 },
+  { id: "wildlife-3-kid-2", theme: "Wildlife", level: 3, ageGroup: "Kid", question: "Dolphins are?", options: ["Fish", "Mammals", "Birds", "Rocks"], correctAnswer: 1 },
+  { id: "wildlife-3-kid-3", theme: "Wildlife", level: 3, ageGroup: "Kid", question: "Camel hump stores?", options: ["Water", "Fat for energy", "Sand", "Milk"], correctAnswer: 1 },
+  { id: "wildlife-3-kid-4", theme: "Wildlife", level: 3, ageGroup: "Kid", question: "Penguin lives in?", options: ["Jungle", "Antarctica", "Desert", "City"], correctAnswer: 1 },
+  { id: "wildlife-3-kid-5", theme: "Wildlife", level: 3, ageGroup: "Kid", question: "Turtles have?", options: ["Fur", "Shells", "Feathers", "Wings"], correctAnswer: 1 },
+  // Level 3 - Teen
+  { id: "wildlife-3-teen-1", theme: "Wildlife", level: 3, ageGroup: "Teen", question: "Symbiosis?", options: ["Fighting", "Living together", "Running", "Sleeping"], correctAnswer: 1 },
+  { id: "wildlife-3-teen-2", theme: "Wildlife", level: 3, ageGroup: "Teen", question: "Pesticides impact?", options: ["Good for bees", "Harming pollinators", "Nothing", "Better food"], correctAnswer: 1 },
+  { id: "wildlife-3-teen-3", theme: "Wildlife", level: 3, ageGroup: "Teen", question: "Great Barrier Reef?", options: ["Forest", "Coral ecosystem", "Desert", "Ice"], correctAnswer: 1 },
+  { id: "wildlife-3-teen-4", theme: "Wildlife", level: 3, ageGroup: "Teen", question: "Decomposers?", options: ["Makers", "Fungi/Bacteria", "Animals", "Sun"], correctAnswer: 1 },
+  { id: "wildlife-3-teen-5", theme: "Wildlife", level: 3, ageGroup: "Teen", question: "Wetlands habitat?", options: ["Dry", "Swamps/Marshes", "Ice", "Space"], correctAnswer: 1 },
+  // Level 3 - Adult
+  { id: "wildlife-3-adult-1", theme: "Wildlife", level: 3, ageGroup: "Adult", question: "Genetic diversity?", options: ["Same", "Variation within species", "Money", "Taxes"], correctAnswer: 1 },
+  { id: "wildlife-3-adult-2", theme: "Wildlife", level: 3, ageGroup: "Adult", question: "CITES treaty?", options: ["War", "Illegal wildlife trade ban", "Water", "Forests"], correctAnswer: 1 },
+  { id: "wildlife-3-adult-3", theme: "Wildlife", level: 3, ageGroup: "Adult", question: "Hotspots of biodiversity?", options: ["Cold", "Rich but threatened areas", "Maps", "Phones"], correctAnswer: 1 },
+  { id: "wildlife-3-adult-4", theme: "Wildlife", level: 3, ageGroup: "Adult", question: "Ecosystem services?", options: ["Money", "Nature's benefits to humans", "Sales", "Ads"], correctAnswer: 1 },
+  { id: "wildlife-3-adult-5", theme: "Wildlife", level: 3, ageGroup: "Adult", question: "Extinction rate today?", options: ["Low", "100-1000x natural rate", "Zero", "Normal"], correctAnswer: 1 },
+
+  // Level 4 - Kid
+  { id: "wildlife-4-kid-1", theme: "Wildlife", level: 4, ageGroup: "Kid", question: "Forests are home to?", options: ["Many animals", "None", "Cars", "TVs"], correctAnswer: 0 },
+  { id: "wildlife-4-kid-2", theme: "Wildlife", level: 4, ageGroup: "Kid", question: "Protecting habitats?", options: ["Helps animals", "Bad", "Mean", "Loud"], correctAnswer: 0 },
+  { id: "wildlife-4-kid-3", theme: "Wildlife", level: 4, ageGroup: "Kid", question: "Plastic in sea?", options: ["Hurts fish", "Good", "Funny", "Pretty"], correctAnswer: 0 },
+  { id: "wildlife-4-kid-4", theme: "Wildlife", level: 4, ageGroup: "Kid", question: "Feeding wild animals?", options: ["Can be bad", "Good", "Funny", "Always"], correctAnswer: 0 },
+  { id: "wildlife-4-kid-5", theme: "Wildlife", level: 4, ageGroup: "Kid", question: "Eco-Park?", options: ["Safe for nature", "Dirty", "Loud", "Mall"], correctAnswer: 0 },
+  // Level 4 - Teen
+  { id: "wildlife-4-teen-1", theme: "Wildlife", level: 4, ageGroup: "Teen", question: "Habitat fragmentation?", options: ["Growth", "Breaking into small pieces", "Water", "Air"], correctAnswer: 1 },
+  { id: "wildlife-4-teen-2", theme: "Wildlife", level: 4, ageGroup: "Teen", question: "Biophilia?", options: ["Love of nature", "Scared of nature", "Biology", "Rocks"], correctAnswer: 0 },
+  { id: "wildlife-4-teen-3", theme: "Wildlife", level: 4, ageGroup: "Teen", question: "Indicator species?", options: ["Common", "Reflects eco-health", "Big", "Dead"], correctAnswer: 1 },
+  { id: "wildlife-4-teen-4", theme: "Wildlife", level: 4, ageGroup: "Teen", question: "Zoonotic diseases?", options: ["Zoo", "Jump from animals to humans", "Space", "Ground"], correctAnswer: 1 },
+  { id: "wildlife-4-teen-5", theme: "Wildlife", level: 4, ageGroup: "Teen", question: "Sustainable fishing?", options: ["Overfishing", "Keeping populations healthy", "Bad", "Loud"], correctAnswer: 1 },
+  // Level 4 - Adult
+  { id: "wildlife-4-adult-1", theme: "Wildlife", level: 4, ageGroup: "Adult", question: "Edge effect?", options: ["Center", "Changes at habitat borders", "Mountain", "Desert"], correctAnswer: 1 },
+  { id: "wildlife-4-adult-2", theme: "Wildlife", level: 4, ageGroup: "Adult", question: "Phylogenetic diversity?", options: ["Same", "Evolutionary breadth", "Money", "Taxes"], correctAnswer: 1 },
+  { id: "wildlife-4-adult-3", theme: "Wildlife", level: 4, ageGroup: "Adult", question: "Ecological niche?", options: ["Room", "Species' role in ecosystem", "Home", "Nest"], correctAnswer: 1 },
+  { id: "wildlife-4-adult-4", theme: "Wildlife", level: 4, ageGroup: "Adult", question: "Population bottleneck?", options: ["Bottle", "Drastic size reduction", "Glass", "Plastic"], correctAnswer: 1 },
+  { id: "wildlife-4-adult-5", theme: "Wildlife", level: 4, ageGroup: "Adult", question: "Conservation genetics?", options: ["Money", "Using DNA to save species", "Labs", "Gardens"], correctAnswer: 1 },
+
+  // Level 5 - Kid
+  { id: "wildlife-5-kid-1", theme: "Wildlife", level: 5, ageGroup: "Kid", question: "Loving animals means?", options: ["Respecting them", "Catching them", "Scaring them", "Ignoring"], correctAnswer: 0 },
+  { id: "wildlife-5-kid-2", theme: "Wildlife", level: 5, ageGroup: "Kid", question: "Nature Hero?", options: ["Protects wildlife", "Litterer", "Lazy", "Loud"], correctAnswer: 0 },
+  { id: "wildlife-5-kid-3", theme: "Wildlife", level: 5, ageGroup: "Kid", question: "Sharing Earth?", options: ["With all life", "Only people", "TV", "Cars"], correctAnswer: 0 },
+  { id: "wildlife-5-kid-4", theme: "Wildlife", level: 5, ageGroup: "Kid", question: "Watching birds?", options: ["Peaceful", "Loud", "Scary", "Bad"], correctAnswer: 0 },
+  { id: "wildlife-5-kid-5", theme: "Wildlife", level: 5, ageGroup: "Kid", question: "Future forests?", options: ["Full of life", "Empty", "Hard", "No"], correctAnswer: 0 },
+  // Level 5 - Teen
+  { id: "wildlife-5-teen-1", theme: "Wildlife", level: 5, ageGroup: "Teen", question: "Anthropocene?", options: ["Ancient", "Age of human impact", "Future", "Ice Age"], correctAnswer: 1 },
+  { id: "wildlife-5-teen-2", theme: "Wildlife", level: 5, ageGroup: "Teen", question: "Resilience in ecosystems?", options: ["Weakness", "Ability to recover", "Fast", "Slow"], correctAnswer: 1 },
+  { id: "wildlife-5-teen-3", theme: "Wildlife", level: 5, ageGroup: "Teen", question: "Ecological debt?", options: ["Money", "Overusing resources", "Sales", "Taxes"], correctAnswer: 1 },
+  { id: "wildlife-5-teen-4", theme: "Wildlife", level: 5, ageGroup: "Teen", question: "Citizen science?", options: ["Pro only", "Public helping research", "School", "Lab"], correctAnswer: 1 },
+  { id: "wildlife-5-teen-5", theme: "Wildlife", level: 5, ageGroup: "Teen", question: "Wildlife trade impact?", options: ["Good", "Species loss/disease", "None", "Better"], correctAnswer: 1 },
+  // Level 5 - Adult
+  { id: "wildlife-5-adult-1", theme: "Wildlife", level: 5, ageGroup: "Adult", question: "Megafauna extinction?", options: ["Small", "Large animal loss", "Plants", "Birds"], correctAnswer: 1 },
+  { id: "wildlife-5-adult-2", theme: "Wildlife", level: 5, ageGroup: "Adult", question: "Ecosystem restoration?", options: ["Breaking", "Reversing degradation", "Mining", "Farming"], correctAnswer: 1 },
+  { id: "wildlife-5-adult-3", theme: "Wildlife", level: 5, ageGroup: "Adult", question: "Natural capital?", options: ["Money", "Nature's stock of assets", "Sales", "Ads"], correctAnswer: 1 },
+  { id: "wildlife-5-adult-4", theme: "Wildlife", level: 5, ageGroup: "Adult", question: "Conservation easements?", options: ["Roads", "Legal land protection", "Fences", "Walls"], correctAnswer: 1 },
+  { id: "wildlife-5-adult-5", theme: "Wildlife", level: 5, ageGroup: "Adult", question: "Holocene vs Anthropocene?", options: ["Same", "Current vs Human age", "Old vs New", "Hot vs Cold"], correctAnswer: 1 },
+
+  // --- POLLUTION ---
+  // Level 1 - Kid
+  { id: "pollution-1-kid-1", theme: "Pollution", level: 1, ageGroup: "Kid", question: "Recycle bin color often?", options: ["Black", "Blue/Green", "Red", "Grey"], correctAnswer: 1 },
+  { id: "pollution-1-kid-2", theme: "Pollution", level: 1, ageGroup: "Kid", question: "Beach trash?", options: ["Leave it", "Bin it", "Sea", "Sand"], correctAnswer: 1 },
+  { id: "pollution-1-kid-3", theme: "Pollution", level: 1, ageGroup: "Kid", question: "Factory smoke?", options: ["Pretty", "Dirty air", "Good smell", "Doesn't matter"], correctAnswer: 1 },
+  { id: "pollution-1-kid-4", theme: "Pollution", level: 1, ageGroup: "Kid", question: "Old glass?", options: ["Trash", "Recycle", "Eat", "Hide"], correctAnswer: 1 },
+  { id: "pollution-1-kid-5", theme: "Pollution", level: 1, ageGroup: "Kid", question: "Eco bottle?", options: ["Plastic", "Reusable", "Paper", "Straw"], correctAnswer: 1 },
+  // Level 1 - Teen
+  { id: "pollution-1-teen-1", theme: "Pollution", level: 1, ageGroup: "Teen", question: "Plastic bottle decomposition?", options: ["10 yrs", "50 yrs", "450 yrs", "1000 yrs"], correctAnswer: 2 },
+  { id: "pollution-1-teen-2", theme: "Pollution", level: 1, ageGroup: "Teen", question: "Microplastics?", options: ["Robots", "Small pieces < 5mm", "Computer parts", "Bags"], correctAnswer: 1 },
+  { id: "pollution-1-teen-3", theme: "Pollution", level: 1, ageGroup: "Teen", question: "E-waste?", options: ["Electronics", "Energy", "Eating", "Earth"], correctAnswer: 0 },
+  { id: "pollution-1-teen-4", theme: "Pollution", level: 1, ageGroup: "Teen", question: "Ocean pollutant #1?", options: ["Bags", "Cigarette butts", "Glass", "Straws"], correctAnswer: 1 },
+  { id: "pollution-1-teen-5", theme: "Pollution", level: 1, ageGroup: "Teen", question: "Recycling percentage?", options: ["9%", "50%", "75%", "100%"], correctAnswer: 0 },
+  // Level 1 - Adult
+  { id: "pollution-1-adult-1", theme: "Pollution", level: 1, ageGroup: "Adult", question: "Great Pacific Garbage Patch size?", options: ["Mall", "Texas x2", "Room", "Park"], correctAnswer: 1 },
+  { id: "pollution-1-adult-2", theme: "Pollution", level: 1, ageGroup: "Adult", question: "BPA in plastics?", options: ["Bad", "Bisphenol A", "Big", "Best"], correctAnswer: 1 },
+  { id: "pollution-1-adult-3", theme: "Pollution", level: 1, ageGroup: "Adult", question: "Air Quality Index (AQI)?", options: ["Colors", "Pollution measurement", "Maps", "Weather"], correctAnswer: 1 },
+  { id: "pollution-1-adult-4", theme: "Pollution", level: 1, ageGroup: "Adult", question: "Point source pollution?", options: ["Many", "Single identifiable source", "Cloud", "Rain"], correctAnswer: 1 },
+  { id: "pollution-1-adult-5", theme: "Pollution", level: 1, ageGroup: "Adult", question: "Landfill gases?", options: ["Oxygen", "Methane/CO2", "Nitrogen", "Argon"], correctAnswer: 1 },
+
+  // Level 2 - Kid
+  { id: "pollution-2-kid-1", theme: "Pollution", level: 2, ageGroup: "Kid", question: "Is littering okay?", options: ["Never", "Always", "Sometimes", "In parks"], correctAnswer: 0 },
+  { id: "pollution-2-kid-2", theme: "Pollution", level: 2, ageGroup: "Kid", question: "Ocean animals eat trash?", options: ["Yes, sadly", "No", "Only sharks", "Maybe"], correctAnswer: 0 },
+  { id: "pollution-2-kid-3", theme: "Pollution", level: 2, ageGroup: "Kid", question: "What is 'reuse'?", options: ["Trash", "Use again", "Break", "Sell"], correctAnswer: 1 },
+  { id: "pollution-2-kid-4", theme: "Pollution", level: 2, ageGroup: "Kid", question: "Noisy cars cause?", options: ["Rain", "Noise pollution", "Sun", "Snow"], correctAnswer: 1 },
+  { id: "pollution-2-kid-5", theme: "Pollution", level: 2, ageGroup: "Kid", question: "Dirty water looks?", options: ["Cloudy/Dark", "Clear", "Sparkly", "Pink"], correctAnswer: 0 },
+  // Level 2 - Teen
+  { id: "pollution-2-teen-1", theme: "Pollution", level: 2, ageGroup: "Teen", question: "Acid rain cause?", options: ["Sun", "Sulfur/Nitrogen oxides", "Ice", "Trees"], correctAnswer: 1 },
+  { id: "pollution-2-teen-2", theme: "Pollution", level: 2, ageGroup: "Teen", question: "Biodegradable?", options: ["Lasts forever", "Breaks down naturally", "Plastic", "Metal"], correctAnswer: 1 },
+  { id: "pollution-2-teen-3", theme: "Pollution", level: 2, ageGroup: "Teen", question: "Smog is?", options: ["Cloud", "Smoke + Fog", "Rain", "Wind"], correctAnswer: 1 },
+  { id: "pollution-2-teen-4", theme: "Pollution", level: 2, ageGroup: "Teen", question: "Textile waste?", options: ["Food", "Old clothes", "Glass", "Oil"], correctAnswer: 1 },
+  { id: "pollution-2-teen-5", theme: "Pollution", level: 2, ageGroup: "Teen", question: "Particulate matter (PM2.5)?", options: ["Big rocks", "Tiny airborne particles", "Water", "Fish"], correctAnswer: 1 },
+  // Level 2 - Adult
+  { id: "pollution-2-adult-1", theme: "Pollution", level: 2, ageGroup: "Adult", question: "Eutrophication cause?", options: ["Sound", "Nutrient runoff", "Heat", "Light"], correctAnswer: 1 },
+  { id: "pollution-2-adult-2", theme: "Pollution", level: 2, ageGroup: "Adult", question: "Biomagnification?", options: ["Growing", "Toxin buildup in chain", "Magnets", "Lens"], correctAnswer: 1 },
+  { id: "pollution-2-adult-3", theme: "Pollution", level: 2, ageGroup: "Adult", question: "Particulate matter origin?", options: ["Flowers", "Combustion/Dust", "Rain", "Ice"], correctAnswer: 1 },
+  { id: "pollution-2-adult-4", theme: "Pollution", level: 2, ageGroup: "Adult", question: "Volatile Organic Compounds (VOCs)?", options: ["Water", "Chemical gases", "Rocks", "Soil"], correctAnswer: 1 },
+  { id: "pollution-2-adult-5", theme: "Pollution", level: 2, ageGroup: "Adult", question: "Hazardous waste?", options: ["Apple", "Batteries/Chemicals", "Paper", "Bread"], correctAnswer: 1 },
+
+  // Level 3 - Kid
+  { id: "pollution-3-kid-1", theme: "Pollution", level: 3, ageGroup: "Kid", question: "Where does plastic go?", options: ["Disappears", "Lasts hundreds of years", "Becomes food", "Turns to water"], correctAnswer: 1 },
+  { id: "pollution-3-kid-2", theme: "Pollution", level: 3, ageGroup: "Kid", question: "Composting is?", options: ["Burying plastic", "Turning food into soil", "Burning paper", "Mining"], correctAnswer: 1 },
+  { id: "pollution-3-kid-3", theme: "Pollution", level: 3, ageGroup: "Kid", question: "Straws hurt?", options: ["Turtles", "Trees", "Mountains", "Sun"], correctAnswer: 0 },
+  { id: "pollution-3-kid-4", theme: "Pollution", level: 3, ageGroup: "Kid", question: "Saving paper?", options: ["Saves trees", "Saves cars", "Saves ice", "Nothing"], correctAnswer: 0 },
+  { id: "pollution-3-kid-5", theme: "Pollution", level: 3, ageGroup: "Kid", question: "Less trash means?", options: ["Happy Earth", "Sad Earth", "No change", "Hot Earth"], correctAnswer: 0 },
+  // Level 3 - Teen
+  { id: "pollution-3-teen-1", theme: "Pollution", level: 3, ageGroup: "Teen", question: "Single-use plastic ban?", options: ["Why not", "To reduce ocean waste", "To sell more", "None"], correctAnswer: 1 },
+  { id: "pollution-3-teen-2", theme: "Pollution", level: 3, ageGroup: "Teen", question: "Ghost nets?", options: ["Spooky", "Abandoned fishing gear", "Clouds", "Ice"], correctAnswer: 1 },
+  { id: "pollution-3-teen-3", theme: "Pollution", level: 3, ageGroup: "Teen", question: "Carbon monoxide?", options: ["Tasty", "Toxic gas", "Smells like roses", "Oxygen"], correctAnswer: 1 },
+  { id: "pollution-3-teen-4", theme: "Pollution", level: 3, ageGroup: "Teen", question: "Sustainable fashion?", options: ["Cheap", "Eco-conscious clothing", "Fast", "Shiny"], correctAnswer: 1 },
+  { id: "pollution-3-teen-5", theme: "Pollution", level: 3, ageGroup: "Teen", question: "Upcycling?", options: ["Cycling up hill", "Creative reuse", "Trash", "Breaking"], correctAnswer: 1 },
+  // Level 3 - Adult
+  { id: "pollution-3-adult-1", theme: "Pollution", level: 3, ageGroup: "Adult", question: "Persistent Organic Pollutants (POPs)?", options: ["Fast", "Long-lasting toxic chemicals", "Food", "Water"], correctAnswer: 1 },
+  { id: "pollution-3-adult-2", theme: "Pollution", level: 3, ageGroup: "Adult", question: "Thermal pollution?", options: ["Cold", "Heated water discharge", "Sun", "Ice"], correctAnswer: 1 },
+  { id: "pollution-3-adult-3", theme: "Pollution", level: 3, ageGroup: "Adult", question: "Extended Producer Responsibility (EPR)?", options: ["Buying", "Makers handle waste", "Selling", "Ads"], correctAnswer: 1 },
+  { id: "pollution-3-adult-4", theme: "Pollution", level: 3, ageGroup: "Adult", question: "Circular economy?", options: ["Round", "Waste-free cycle", "Line", "Box"], correctAnswer: 1 },
+  { id: "pollution-3-adult-5", theme: "Pollution", level: 3, ageGroup: "Adult", question: "Green chemistry?", options: ["Green dye", "Sustainable chemical design", "Plants", "Lab"], correctAnswer: 1 },
+
+  // Level 4 - Kid
+  { id: "pollution-4-kid-1", theme: "Pollution", level: 4, ageGroup: "Kid", question: "Too much smoke?", options: ["Hard to breathe", "Good", "Funny", "Blue sky"], correctAnswer: 0 },
+  { id: "pollution-4-kid-2", theme: "Pollution", level: 4, ageGroup: "Kid", question: "Battery in trash?", options: ["Yes", "No, special bin", "Under bed", "Park"], correctAnswer: 1 },
+  { id: "pollution-4-kid-3", theme: "Pollution", level: 4, ageGroup: "Kid", question: "Plastic bag vs Cloth?", options: ["Plastic wins", "Cloth is better", "Same", "Paper"], correctAnswer: 1 },
+  { id: "pollution-4-kid-4", theme: "Pollution", level: 4, ageGroup: "Kid", question: "Donating toys?", options: ["Less waste", "Bad", "Mean", "Loud"], correctAnswer: 0 },
+  { id: "pollution-4-kid-5", theme: "Pollution", level: 4, ageGroup: "Kid", question: "Eco-Hero?", options: ["Cleans trash", "Litterer", "Lazy", "Noisy"], correctAnswer: 0 },
+  // Level 4 - Teen
+  { id: "pollution-4-teen-1", theme: "Pollution", level: 4, ageGroup: "Teen", question: "Phthalates?", options: ["Food", "Plastic softeners", "Water", "Air"], correctAnswer: 1 },
+  { id: "pollution-4-teen-2", theme: "Pollution", level: 4, ageGroup: "Teen", question: "Secondary pollutants?", options: ["Direct", "Formed in air", "Soil", "Rocks"], correctAnswer: 1 },
+  { id: "pollution-4-teen-3", theme: "Pollution", level: 4, ageGroup: "Teen", question: "Ocean deoxygenation?", options: ["More air", "Loss of O2", "Salt", "Ice"], correctAnswer: 1 },
+  { id: "pollution-4-teen-4", theme: "Pollution", level: 4, ageGroup: "Teen", question: "Microbeads?", options: ["Beads", "Tiny plastic in soaps", "Food", "Water"], correctAnswer: 1 },
+  { id: "pollution-4-teen-5", theme: "Pollution", level: 4, ageGroup: "Teen", question: "Noise pollution effect?", options: ["Hearing loss/stress", "Better sleep", "Rain", "Sun"], correctAnswer: 0 },
+  // Level 4 - Adult
+  { id: "pollution-4-adult-1", theme: "Pollution", level: 4, ageGroup: "Adult", question: "Bioaccumulation vs Biomagnification?", options: ["Same", "Individual vs Chain", "Water vs Air", "Hot vs Cold"], correctAnswer: 1 },
+  { id: "pollution-4-adult-2", theme: "Pollution", level: 4, ageGroup: "Adult", question: "Leachate?", options: ["Tea", "Contaminated landfill liquid", "Oil", "Water"], correctAnswer: 1 },
+  { id: "pollution-4-adult-3", theme: "Pollution", level: 4, ageGroup: "Adult", question: "Criteria air pollutants?", options: ["EPA regulated list", "Maps", "Weather", "Sun"], correctAnswer: 0 },
+  { id: "pollution-4-adult-4", theme: "Pollution", level: 4, ageGroup: "Adult", question: "Endocrine disruptors?", options: ["Hormone-altering chems", "Energy", "Light", "Noise"], correctAnswer: 0 },
+  { id: "pollution-4-adult-5", theme: "Pollution", level: 4, ageGroup: "Adult", question: "Environmental remediation?", options: ["Cleaning pollution sites", "Buying land", "Farming", "Mining"], correctAnswer: 0 },
+
+  // Level 5 - Kid
+  { id: "pollution-5-kid-1", theme: "Pollution", level: 5, ageGroup: "Kid", question: "Picking up trash?", options: ["Helpful", "Mean", "Dirty", "Slow"], correctAnswer: 0 },
+  { id: "pollution-5-kid-2", theme: "Pollution", level: 5, ageGroup: "Kid", question: "Zero waste?", options: ["No trash", "All trash", "Some", "Lots"], correctAnswer: 0 },
+  { id: "pollution-5-kid-3", theme: "Pollution", level: 5, ageGroup: "Kid", question: "Sharing helps?", options: ["Yes, fewer things", "No", "Maybe", "Later"], correctAnswer: 0 },
+  { id: "pollution-5-kid-4", theme: "Pollution", level: 5, ageGroup: "Kid", question: "Earth's friend?", options: ["Litterer", "EcoWarrior", "TV", "Car"], correctAnswer: 1 },
+  { id: "pollution-5-kid-5", theme: "Pollution", level: 5, ageGroup: "Kid", question: "Future world?", options: ["Clean", "Dirty", "Hard", "No"], correctAnswer: 0 },
+  // Level 5 - Teen
+  { id: "pollution-5-teen-1", theme: "Pollution", level: 5, ageGroup: "Teen", question: "PFAS 'forever chemicals'?", options: ["Short", "Persistent toxins", "Food", "Air"], correctAnswer: 1 },
+  { id: "pollution-5-teen-2", theme: "Pollution", level: 5, ageGroup: "Teen", question: "Urban heat island?", options: ["Tropical", "Cities hotter than rural", "Beach", "Park"], correctAnswer: 1 },
+  { id: "pollution-5-teen-3", theme: "Pollution", level: 5, ageGroup: "Teen", question: "Polluter pays principle?", options: ["Free", "Makers pay for damage", "Buying", "Selling"], correctAnswer: 1 },
+  { id: "pollution-5-teen-4", theme: "Pollution", level: 5, ageGroup: "Teen", question: "Ecological footprint?", options: ["Shoe size", "Resource consumption metric", "Step", "Dirt"], correctAnswer: 1 },
+  { id: "pollution-5-teen-5", theme: "Pollution", level: 5, ageGroup: "Teen", question: "Regenerative design?", options: ["Old", "Nature-restoring systems", "Wasteful", "Broken"], correctAnswer: 1 },
+  // Level 5 - Adult
+  { id: "pollution-5-adult-1", theme: "Pollution", level: 5, ageGroup: "Adult", question: "E-waste mining?", options: ["Digging", "Recovering metals from tech", "Coal", "Gold"], correctAnswer: 1 },
+  { id: "pollution-5-adult-2", theme: "Pollution", level: 5, ageGroup: "Adult", question: "NIMBYism?", options: ["Dancing", "Not In My Backyard", "Sleeping", "Eating"], correctAnswer: 1 },
+  { id: "pollution-5-adult-3", theme: "Pollution", level: 5, ageGroup: "Adult", question: "Life Cycle Assessment (LCA)?", options: ["Health", "Product env impact analysis", "Money", "Sales"], correctAnswer: 1 },
+  { id: "pollution-5-adult-4", theme: "Pollution", level: 5, ageGroup: "Adult", question: "Nanoplastics?", options: ["Big", "Ultra-small plastic < 100nm", "Lego", "Bags"], correctAnswer: 1 },
+  { id: "pollution-5-adult-5", theme: "Pollution", level: 5, ageGroup: "Adult", question: "Bioremediation?", options: ["Plants/Microbes cleaning pollution", "Mining", "Farming", "Zoos"], correctAnswer: 0 },
+
+  // --- WATER ---
+  // Level 1 - Kid
+  { id: "water-1-kid-1", theme: "Water", level: 1, ageGroup: "Kid", question: "Brushing teeth?", options: ["Tap on", "Tap off", "Sing", "Dance"], correctAnswer: 1 },
+  { id: "water-1-kid-2", theme: "Water", level: 1, ageGroup: "Kid", question: "Who needs water?", options: ["People", "Plants", "Everything alive", "Fish"], correctAnswer: 2 },
+  { id: "water-1-kid-3", theme: "Water", level: 1, ageGroup: "Kid", question: "Rain source?", options: ["Ground", "Clouds", "Moon", "Sun"], correctAnswer: 1 },
+  { id: "water-1-kid-4", theme: "Water", level: 1, ageGroup: "Kid", question: "Earth is mostly?", options: ["Water", "Land", "Equal", "Air"], correctAnswer: 0 },
+  { id: "water-1-kid-5", theme: "Water", level: 1, ageGroup: "Kid", question: "A drop is?", options: ["Wave", "Tiny bit", "Fish", "Cloud"], correctAnswer: 1 },
+  // Level 1 - Teen
+  { id: "water-1-teen-1", theme: "Water", level: 1, ageGroup: "Teen", question: "Freshwater percentage?", options: ["1%", "3%", "10%", "25%"], correctAnswer: 1 },
+  { id: "water-1-teen-2", theme: "Water", level: 1, ageGroup: "Teen", question: "Water cycle?", options: ["Bike", "Constant water movement", "Storm", "River"], correctAnswer: 1 },
+  { id: "water-1-teen-3", theme: "Water", level: 1, ageGroup: "Teen", question: "Aquifer?", options: ["Fish", "Underground water layer", "Cloud", "Tap"], correctAnswer: 1 },
+  { id: "water-1-teen-4", theme: "Water", level: 1, ageGroup: "Teen", question: "Virtual water?", options: ["Video game", "Water used to make products", "Ghost", "Air"], correctAnswer: 1 },
+  { id: "water-1-teen-5", theme: "Water", level: 1, ageGroup: "Teen", question: "Wetlands purpose?", options: ["None", "Flood control/Filtration", "Swimming", "Mining"], correctAnswer: 1 },
+  // Level 1 - Adult
+  { id: "water-1-adult-1", theme: "Water", level: 1, ageGroup: "Adult", question: "Desalination leader?", options: ["USA", "Saudi Arabia", "China", "Russia"], correctAnswer: 1 },
+  { id: "water-1-adult-2", theme: "Water", level: 1, ageGroup: "Adult", question: "Greywater vs Blackwater?", options: ["Same", "Sink/Shower vs Toilet", "Hot vs Cold", "Salt vs Fresh"], correctAnswer: 1 },
+  { id: "water-1-adult-3", theme: "Water", level: 1, ageGroup: "Adult", question: "Watershed?", options: ["Shed", "Area draining to one point", "Tank", "Dam"], correctAnswer: 1 },
+  { id: "water-1-adult-4", theme: "Water", level: 1, ageGroup: "Adult", question: "Potable means?", options: ["Dirty", "Safe to drink", "Magic", "Hot"], correctAnswer: 1 },
+  { id: "water-1-adult-5", theme: "Water", level: 1, ageGroup: "Adult", question: "Water stress?", options: ["Tired", "High demand/low supply", "Wet", "Rain"], correctAnswer: 1 },
+
+  // Level 2 - Kid
+  { id: "water-2-kid-1", theme: "Water", level: 2, ageGroup: "Kid", question: "Saltwater in?", options: ["Taps", "Oceans", "Milk", "Juice"], correctAnswer: 1 },
+  { id: "water-2-kid-2", theme: "Water", level: 2, ageGroup: "Kid", question: "Fish breathe in?", options: ["Air", "Water", "Rocks", "Sand"], correctAnswer: 1 },
+  { id: "water-2-kid-3", theme: "Water", level: 2, ageGroup: "Kid", question: "Save water by?", options: ["Leak fix", "Long bath", "Waste", "None"], correctAnswer: 0 },
+  { id: "water-2-kid-4", theme: "Water", level: 2, ageGroup: "Kid", question: "Rainwater?", options: ["Good for plants", "Bad", "Tasty", "Blue"], correctAnswer: 0 },
+  { id: "water-2-kid-5", theme: "Water", level: 2, ageGroup: "Kid", question: "Frozen water is?", options: ["Juice", "Ice", "Steam", "Gas"], correctAnswer: 1 },
+  // Level 2 - Teen
+  { id: "water-2-teen-1", theme: "Water", level: 2, ageGroup: "Teen", question: "Transpiration?", options: ["Cars", "Plants releasing water vapor", "Wind", "Waves"], correctAnswer: 1 },
+  { id: "water-2-teen-2", theme: "Water", level: 2, ageGroup: "Teen", question: "Surface runoff?", options: ["Running", "Water flowing over land", "Sky", "Tap"], correctAnswer: 1 },
+  { id: "water-2-teen-3", theme: "Water", level: 2, ageGroup: "Teen", question: "Hard water contains?", options: ["Ice", "Minerals like Calcium", "Sugar", "Oil"], correctAnswer: 1 },
+  { id: "water-2-teen-4", theme: "Water", level: 2, ageGroup: "Teen", question: "Water footprint?", options: ["Step", "Total water use metric", "Shoe", "Wet"], correctAnswer: 1 },
+  { id: "water-2-teen-5", theme: "Water", level: 2, ageGroup: "Teen", question: "Glaciers contain?", options: ["Salt", "Freshwater", "Milk", "Sand"], correctAnswer: 1 },
+  // Level 2 - Adult
+  { id: "water-2-adult-1", theme: "Water", level: 2, ageGroup: "Adult", question: "Hydrological cycle driver?", options: ["Moon", "Sun", "Wind", "Earth rotation"], correctAnswer: 1 },
+  { id: "water-2-adult-2", theme: "Water", level: 2, ageGroup: "Adult", question: "Riparian zone?", options: ["Space", "Area near river/stream", "Mountain", "Desert"], correctAnswer: 1 },
+  { id: "water-2-adult-3", theme: "Water", level: 2, ageGroup: "Adult", question: "Xeriscaping?", options: ["Farming", "Water-efficient landscaping", "Milling", "Zoos"], correctAnswer: 1 },
+  { id: "water-2-adult-4", theme: "Water", level: 2, ageGroup: "Adult", question: "Subsidence?", options: ["Growing", "Ground sinking from water loss", "Waves", "Tides"], correctAnswer: 1 },
+  { id: "water-2-adult-5", theme: "Water", level: 2, ageGroup: "Adult", question: "Eutrophic lake?", options: ["Deep", "Nutrient-rich/Low oxygen", "Clear", "Frozen"], correctAnswer: 1 },
+
+  // Level 3 - Kid
+  { id: "water-3-kid-1", theme: "Water", level: 3, ageGroup: "Kid", question: "Tap water from?", options: ["Bottles", "Rivers/Lakes", "The moon", "Milk"], correctAnswer: 1 },
+  { id: "water-3-kid-2", theme: "Water", level: 3, ageGroup: "Kid", question: "Short showers?", options: ["Save water", "Bad", "Loud", "Fast"], correctAnswer: 0 },
+  { id: "water-3-kid-3", theme: "Water", level: 3, ageGroup: "Kid", question: "Drought means?", options: ["No rain", "Lots rain", "Floods", "Snow"], correctAnswer: 0 },
+  { id: "water-3-kid-4", theme: "Water", level: 3, ageGroup: "Kid", question: "Water's taste?", options: ["Nothing", "Sweet", "Sour", "Salt"], correctAnswer: 0 },
+  { id: "water-3-kid-5", theme: "Water", level: 3, ageGroup: "Kid", question: "Bubbles in water?", options: ["Air", "Rocks", "Sand", "Food"], correctAnswer: 0 },
+  // Level 3 - Teen
+  { id: "water-3-teen-1", theme: "Water", level: 3, ageGroup: "Teen", question: "Water scarcity?", options: ["Lots", "Lack of enough water", "Salt", "Ice"], correctAnswer: 1 },
+  { id: "water-3-teen-2", theme: "Water", level: 3, ageGroup: "Teen", question: "Drip irrigation?", options: ["Waste", "Efficient watering", "Flooding", "None"], correctAnswer: 1 },
+  { id: "water-3-teen-3", theme: "Water", level: 3, ageGroup: "Teen", question: "Turbidity?", options: ["Clear", "Cloudiness of water", "Heat", "Salt"], correctAnswer: 1 },
+  { id: "water-3-teen-4", theme: "Water", level: 3, ageGroup: "Teen", question: "Sewage treatment?", options: ["None", "Cleaning blackwater", "Swimming", "Mining"], correctAnswer: 1 },
+  { id: "water-3-teen-5", theme: "Water", level: 3, ageGroup: "Teen", question: "H2O is?", options: ["Juice", "Water chemical name", "Air", "Milk"], correctAnswer: 1 },
+  // Level 3 - Adult
+  { id: "water-3-adult-1", theme: "Water", level: 3, ageGroup: "Adult", question: "Water sovereignty?", options: ["Control over water access", "Money", "Taxes", "Buying"], correctAnswer: 0 },
+  { id: "water-3-adult-2", theme: "Water", level: 3, ageGroup: "Adult", question: "Salinization?", options: ["Adding sugar", "Salt buildup in soil", "Watering", "Cleaning"], correctAnswer: 1 },
+  { id: "water-3-adult-3", theme: "Water", level: 3, ageGroup: "Adult", question: "Blue vs Green water?", options: ["Surface vs Soil moisture", "Salt vs Fresh", "Hot vs Cold", "Deep vs Shallow"], correctAnswer: 0 },
+  { id: "water-3-adult-4", theme: "Water", level: 3, ageGroup: "Adult", question: "Hydroelectricity pros?", options: ["No CO2", "Cheap", "Reliable", "All above"], correctAnswer: 3 },
+  { id: "water-3-adult-5", theme: "Water", level: 3, ageGroup: "Adult", question: "SDG 6 focus?", options: ["Clean water/Sanitation", "Life", "Money", "Power"], correctAnswer: 0 },
+
+  // Level 4 - Kid
+  { id: "water-4-kid-1", theme: "Water", level: 4, ageGroup: "Kid", question: "Leaky toilet?", options: ["Wastes water", "Good", "Funny", "Blue"], correctAnswer: 0 },
+  { id: "water-4-kid-2", theme: "Water", level: 4, ageGroup: "Kid", question: "Oceans cover?", options: ["70% of Earth", "10%", "50%", "100%"], correctAnswer: 0 },
+  { id: "water-4-kid-3", theme: "Water", level: 4, ageGroup: "Kid", question: "Water steam is?", options: ["Solid", "Gas", "Liquid", "Ice"], correctAnswer: 1 },
+  { id: "water-4-kid-4", theme: "Water", level: 4, ageGroup: "Kid", question: "Wash car with?", options: ["Bucket", "Running hose", "Milk", "Juice"], correctAnswer: 0 },
+  { id: "water-4-kid-5", theme: "Water", level: 4, ageGroup: "Kid", question: "Eco-Fish?", options: ["Tox-free", "Plastic", "Dirty", "Sad"], correctAnswer: 0 },
+  // Level 4 - Teen
+  { id: "water-4-teen-1", theme: "Water", level: 4, ageGroup: "Teen", question: "Dead zones?", options: ["Zombies", "Hypoxic water (low O2)", "Ice", "Salt"], correctAnswer: 1 },
+  { id: "water-4-teen-2", theme: "Water", level: 4, ageGroup: "Teen", question: "Micro-hydro?", options: ["Big", "Small scale water power", "Rain", "Tap"], correctAnswer: 1 },
+  { id: "water-4-teen-3", theme: "Water", level: 4, ageGroup: "Teen", question: "Reverse osmosis?", options: ["Cooking", "Water filtration method", "Magic", "Storm"], correctAnswer: 1 },
+  { id: "water-4-teen-4", theme: "Water", level: 4, ageGroup: "Teen", question: "Thermal expansion?", options: ["Growing", "Water expanding as it warms", "Waves", "Tides"], correctAnswer: 1 },
+  { id: "water-4-teen-5", theme: "Water", level: 4, ageGroup: "Teen", question: "Benthic zone?", options: ["Surface", "Bottom of water body", "Air", "Clouds"], correctAnswer: 1 },
+  // Level 4 - Adult
+  { id: "water-4-adult-1", theme: "Water", level: 4, ageGroup: "Adult", question: "Anoxic water?", options: ["High O2", "No dissolved O2", "Salt", "Acid"], correctAnswer: 1 },
+  { id: "water-4-adult-2", theme: "Water", level: 4, ageGroup: "Adult", question: "Precipitable water?", options: ["Rain", "Water vapor in air column", "River", "Lake"], correctAnswer: 1 },
+  { id: "water-4-adult-3", theme: "Water", level: 4, ageGroup: "Adult", question: "Point-of-use (POU) treatment?", options: ["Large plant", "Home-scale filtration", "Rain", "Dam"], correctAnswer: 1 },
+  { id: "water-4-adult-4", theme: "Water", level: 4, ageGroup: "Adult", question: "Water-energy nexus?", options: ["Connections", "Interdependence of both", "War", "Sales"], correctAnswer: 1 },
+  { id: "water-4-adult-5", theme: "Water", level: 4, ageGroup: "Adult", question: "Fossil water?", options: ["Dinos", "Ancient non-renewed water", "Steam", "Ice"], correctAnswer: 1 },
+
+  // Level 5 - Kid
+  { id: "water-5-kid-1", theme: "Water", level: 5, ageGroup: "Kid", question: "Saving one drop?", options: ["Helps", "Doesn't", "Funny", "No"], correctAnswer: 0 },
+  { id: "water-5-kid-2", theme: "Water", level: 5, ageGroup: "Kid", question: "Water hero?", options: ["Saves water", "Wastes it", "Lazy", "Loud"], correctAnswer: 0 },
+  { id: "water-5-kid-3", theme: "Water", level: 5, ageGroup: "Kid", question: "Ocean love?", options: ["Keep clean", "Dirty", "Litter", "Ignore"], correctAnswer: 0 },
+  { id: "water-5-kid-4", theme: "Water", level: 5, ageGroup: "Kid", question: "Sharing water?", options: ["Good", "Bad", "Mean", "Loud"], correctAnswer: 0 },
+  { id: "water-5-kid-5", theme: "Water", level: 5, ageGroup: "Kid", question: "Future lakes?", options: ["Blue/Clean", "Brown", "Empty", "Hard"], correctAnswer: 0 },
+  // Level 5 - Teen
+  { id: "water-5-teen-1", theme: "Water", level: 5, ageGroup: "Teen", question: "Integrated Water Resource Management?", options: ["Coordinated water handling", "Selling", "Buying", "None"], correctAnswer: 0 },
+  { id: "water-5-teen-2", theme: "Water", level: 5, ageGroup: "Teen", question: "Virtual water trade?", options: ["Internet", "Food/Goods export-water", "Ghost", "Air"], correctAnswer: 1 },
+  { id: "water-5-teen-3", theme: "Water", level: 5, ageGroup: "Teen", question: "Rainwater harvesting?", options: ["Collecting rain for use", "Wasting", "Mining", "None"], correctAnswer: 0 },
+  { id: "water-5-teen-4", theme: "Water", level: 5, ageGroup: "Teen", question: "Cryosphere?", options: ["Crying", "Frozen water parts of Earth", "Air", "Ground"], correctAnswer: 1 },
+  { id: "water-5-teen-5", theme: "Water", level: 5, ageGroup: "Teen", question: "Ocean acidification impact?", options: ["Shellfish loss", "Bigger fish", "More rain", "None"], correctAnswer: 0 },
+  // Level 5 - Adult
+  { id: "water-5-adult-1", theme: "Water", level: 5, ageGroup: "Adult", question: "Hydro-politics?", options: ["Water-based conflicts", "Boats", "Swimming", "Farms"], correctAnswer: 0 },
+  { id: "water-5-adult-2", theme: "Water", level: 5, ageGroup: "Adult", question: "Smart water grids?", options: ["Digital monitored systems", "Nets", "Fences", "Walls"], correctAnswer: 0 },
+  { id: "water-5-adult-3", theme: "Water", level: 5, ageGroup: "Adult", question: "Decentralized wastewater?", options: ["On-site treatment", "Big pipes", "Rivers", "Lakes"], correctAnswer: 0 },
+  { id: "water-5-adult-4", theme: "Water", level: 5, ageGroup: "Adult", question: "Micro-irrigation?", options: ["Efficient watering", "Flooding", "None", "Mining"], correctAnswer: 0 },
+  { id: "water-5-adult-5", theme: "Water", level: 5, ageGroup: "Adult", question: "Ecosystem services of water?", options: ["Value of natural water flow", "Money", "Bills", "Sales"], correctAnswer: 0 },
+
+  // --- ENERGY ---
+  // Level 1 - Kid
+  { id: "energy-1-kid-1", theme: "Energy", level: 1, ageGroup: "Kid", question: "Sun power?", options: ["Solar panels", "Windmills", "Coal", "Batteries"], correctAnswer: 0 },
+  { id: "energy-1-kid-2", theme: "Energy", level: 1, ageGroup: "Kid", question: "Uses electricity?", options: ["Book", "TV", "Bear", "Spoon"], correctAnswer: 1 },
+  { id: "energy-1-kid-3", theme: "Energy", level: 1, ageGroup: "Kid", question: "Wind turbine needs?", options: ["Water", "Wind", "Sun", "Magnets"], correctAnswer: 1 },
+  { id: "energy-1-kid-4", theme: "Energy", level: 1, ageGroup: "Kid", question: "Sleep with TV on?", options: ["Yes", "No", "Loud", "Maybe"], correctAnswer: 1 },
+  { id: "energy-1-kid-5", theme: "Energy", level: 1, ageGroup: "Kid", question: "Battery purpose?", options: ["Storage", "Food", "Cleaning", "Art"], correctAnswer: 0 },
+  // Level 1 - Teen
+  { id: "energy-1-teen-1", theme: "Energy", level: 1, ageGroup: "Teen", question: "Fossil fuel example?", options: ["Wind", "Solar", "Coal", "Water"], correctAnswer: 2 },
+  { id: "energy-1-teen-2", theme: "Energy", level: 1, ageGroup: "Teen", question: "Energy conservation?", options: ["Using more", "Saving energy", "Buying toys", "None"], correctAnswer: 1 },
+  { id: "energy-1-teen-3", theme: "Energy", level: 1, ageGroup: "Teen", question: "LED benefits?", options: ["Hot", "Uses 75% less energy", "Cheap", "Loud"], correctAnswer: 1 },
+  { id: "energy-1-teen-4", theme: "Energy", level: 1, ageGroup: "Teen", question: "Phantom load?", options: ["Ghosts", "Idle power usage", "Static", "Wind"], correctAnswer: 1 },
+  { id: "energy-1-teen-5", theme: "Energy", level: 1, ageGroup: "Teen", question: "Smart power strip?", options: ["Flat", "Cuts idle power", "Loud", "Fast"], correctAnswer: 1 },
+  // Level 1 - Adult
+  { id: "energy-1-adult-1", theme: "Energy", level: 1, ageGroup: "Adult", question: "Global electricity from coal?", options: ["10%", "36%", "75%", "100%"], correctAnswer: 1 },
+  { id: "energy-1-adult-2", theme: "Energy", level: 1, ageGroup: "Adult", question: "Energy intensity?", options: ["Power", "Energy per unit of GDP", "Heat", "Light"], correctAnswer: 1 },
+  { id: "energy-1-adult-3", theme: "Energy", level: 1, ageGroup: "Adult", question: "Renewable energy share goal?", options: ["0%", "100% eventually", "50%", "10%"], correctAnswer: 1 },
+  { id: "energy-1-adult-4", theme: "Energy", level: 1, ageGroup: "Adult", question: "Energy efficiency?", options: ["Using less for same task", "Using more", "Buying", "Selling"], correctAnswer: 0 },
+  { id: "energy-1-adult-5", theme: "Energy", level: 1, ageGroup: "Adult", question: "Carbon capture?", options: ["Mining", "Trapping emissions at source", "Selling", "Buying"], correctAnswer: 1 },
+
+  // Level 2 - Kid
+  { id: "energy-2-kid-1", theme: "Energy", level: 2, ageGroup: "Kid", question: "Windmill look?", options: ["Giant fan", "Big box", "Small car", "House"], correctAnswer: 0 },
+  { id: "energy-2-kid-2", theme: "Energy", level: 2, ageGroup: "Kid", question: "Fire wood from?", options: ["Rocks", "Trees", "Plastic", "Metal"], correctAnswer: 1 },
+  { id: "energy-2-kid-3", theme: "Energy", level: 2, ageGroup: "Kid", question: "Phone charge all night?", options: ["Yes", "No, saves energy", "Maybe", "Sometimes"], correctAnswer: 1 },
+  { id: "energy-2-kid-4", theme: "Energy", level: 2, ageGroup: "Kid", question: "Solar panel color?", options: ["Pink", "Dark blue/Black", "Yellow", "White"], correctAnswer: 1 },
+  { id: "energy-2-kid-5", theme: "Energy", level: 2, ageGroup: "Kid", question: "Walk to school?", options: ["Saves gas", "Bad", "Loud", "Slow"], correctAnswer: 0 },
+  // Level 2 - Teen
+  { id: "energy-2-teen-1", theme: "Energy", level: 2, ageGroup: "Teen", question: "Geothermal energy?", options: ["Sun", "Heat from Earth", "Wind", "Water"], correctAnswer: 1 },
+  { id: "energy-2-teen-2", theme: "Energy", level: 2, ageGroup: "Teen", question: "Vampire power?", options: ["Scary", "Phantom load", "Static", "None"], correctAnswer: 1 },
+  { id: "energy-2-teen-3", theme: "Energy", level: 2, ageGroup: "Teen", question: "Passive solar design?", options: ["Nets", "Using sun for heat/light", "Fences", "Walls"], correctAnswer: 1 },
+  { id: "energy-2-teen-4", theme: "Energy", level: 2, ageGroup: "Teen", question: "Energy audit?", options: ["Music", "Assessing home energy use", "Bill", "Ad"], correctAnswer: 1 },
+  { id: "energy-2-teen-5", theme: "Energy", level: 2, ageGroup: "Teen", question: "Biofuel origin?", options: ["Rocks", "Organic matter", "Plastic", "Metal"], correctAnswer: 1 },
+  // Level 2 - Adult
+  { id: "energy-2-adult-1", theme: "Energy", level: 2, ageGroup: "Adult", question: "Levelized Cost of Energy (LCOE)?", options: ["Price", "Total cost per MWh", "Tax", "Fee"], correctAnswer: 1 },
+  { id: "energy-2-adult-2", theme: "Energy", level: 2, ageGroup: "Adult", question: "Intermittency?", options: ["Constant", "Non-continuous supply", "Fast", "Slow"], correctAnswer: 1 },
+  { id: "energy-2-adult-3", theme: "Energy", level: 2, ageGroup: "Adult", question: "Grid parity?", options: ["Match in cost", "Diff", "High", "Low"], correctAnswer: 0 },
+  { id: "energy-2-adult-4", theme: "Energy", level: 2, ageGroup: "Adult", question: "Feed-in tariff?", options: ["Tax", "Payment for grid power", "Fee", "Fine"], correctAnswer: 1 },
+  { id: "energy-2-adult-5", theme: "Energy", level: 2, ageGroup: "Adult", question: "Pumped-storage hydro?", options: ["None", "Storing energy as water", "Mining", "Farming"], correctAnswer: 1 },
+
+  // Level 3 - Kid
+  { id: "energy-3-kid-1", theme: "Energy", level: 3, ageGroup: "Kid", question: "Clean energy?", options: ["Sun/Wind", "Coal/Smoke", "Trash", "Dirt"], correctAnswer: 0 },
+  { id: "energy-3-kid-2", theme: "Energy", level: 3, ageGroup: "Kid", question: "Wind speeds?", options: ["Turn turbines", "Stop trees", "Bad", "Loud"], correctAnswer: 0 },
+  { id: "energy-3-kid-3", theme: "Energy", level: 3, ageGroup: "Kid", question: "Switching off?", options: ["Helps Earth", "Bad", "Mean", "Slow"], correctAnswer: 0 },
+  { id: "energy-3-kid-4", theme: "Energy", level: 3, ageGroup: "Kid", question: "Bigger windows?", options: ["More light/heat", "Bad", "Loud", "Small"], correctAnswer: 0 },
+  { id: "energy-3-kid-5", theme: "Energy", level: 3, ageGroup: "Kid", question: "Energy Hero?", options: ["Saves power", "Wastes it", "Lazy", "Loud"], correctAnswer: 0 },
+  // Level 3 - Teen
+  { id: "energy-3-teen-1", theme: "Energy", level: 3, ageGroup: "Teen", question: "Photovoltaic cells?", options: ["Plants", "Solar cells", "Wind", "Water"], correctAnswer: 1 },
+  { id: "energy-3-teen-2", theme: "Energy", level: 3, ageGroup: "Teen", question: "Hydrogen fuel cells?", options: ["Gas", "Clean energy tech", "Batteries", "None"], correctAnswer: 1 },
+  { id: "energy-3-teen-3", theme: "Energy", level: 3, ageGroup: "Teen", question: "Energy storage?", options: ["Boxes", "Batteries/Hydro", "Clouds", "Rain"], correctAnswer: 1 },
+  { id: "energy-3-teen-4", theme: "Energy", level: 3, ageGroup: "Teen", question: "Decarbonization?", options: ["Adding C", "Removing carbon focus", "Selling", "Buying"], correctAnswer: 1 },
+  { id: "energy-3-teen-5", theme: "Energy", level: 3, ageGroup: "Teen", question: "Smart meter?", options: ["Clock", "Digital energy tracker", "Scale", "Map"], correctAnswer: 1 },
+  // Level 3 - Adult
+  { id: "energy-3-adult-1", theme: "Energy", level: 3, ageGroup: "Adult", question: "Base load power?", options: ["Variable", "Constant min supply", "Peak", "None"], correctAnswer: 1 },
+  { id: "energy-3-adult-2", theme: "Energy", level: 3, ageGroup: "Adult", question: "Energy density of fuels?", options: ["Weight", "Energy per unit volume", "Heat", "Light"], correctAnswer: 1 },
+  { id: "energy-3-adult-3", theme: "Energy", level: 3, ageGroup: "Adult", question: "Green hydrogen?", options: ["Green dye", "Electrolysis from renewables", "Gas", "Coal"], correctAnswer: 1 },
+  { id: "energy-3-adult-4", theme: "Energy", level: 3, ageGroup: "Adult", question: "Capacity factor?", options: ["Size", "Actual vs Potential output", "Weight", "Speed"], correctAnswer: 1 },
+  { id: "energy-3-adult-5", theme: "Energy", level: 3, ageGroup: "Adult", question: "Distributed generation?", options: ["Large plant", "Local small sources", "Grid", "None"], correctAnswer: 1 },
+
+  // Level 4 - Kid
+  { id: "energy-4-kid-1", theme: "Energy", level: 4, ageGroup: "Kid", question: "Hot water needs?", options: ["Energy", "Nothing", "Cold", "Ice"], correctAnswer: 0 },
+  { id: "energy-4-kid-2", theme: "Energy", level: 4, ageGroup: "Kid", question: "Wind farms are?", options: ["Animals", "Groups of turbines", "Gardens", "Parks"], correctAnswer: 1 },
+  { id: "energy-4-kid-3", theme: "Energy", level: 4, ageGroup: "Kid", question: "Sun shines?", options: ["Daytime power", "Night", "Rain", "Snow"], correctAnswer: 0 },
+  { id: "energy-4-kid-4", theme: "Energy", level: 4, ageGroup: "Kid", question: "Ride bus?", options: ["Saves energy", "Bad", "Loud", "Mean"], correctAnswer: 0 },
+  { id: "energy-4-kid-5", theme: "Energy", level: 4, ageGroup: "Kid", question: "Eco-House?", options: ["Uses less power", "Wasteful", "Dark", "Loud"], correctAnswer: 0 },
+  // Level 4 - Teen
+  { id: "energy-4-teen-1", theme: "Energy", level: 4, ageGroup: "Teen", question: "Nuclear fission?", options: ["Fusion", "Splitting atoms for power", "Burning", "Mixing"], correctAnswer: 1 },
+  { id: "energy-4-teen-2", theme: "Energy", level: 4, ageGroup: "Teen", question: "Microgrids?", options: ["Big", "Self-sufficient small grids", "Nets", "Fences"], correctAnswer: 1 },
+  { id: "energy-4-teen-3", theme: "Energy", level: 4, ageGroup: "Teen", question: "Energy return on investment (EROI)?", options: ["Money", "Energy gain vs energy used", "Tax", "Fee"], correctAnswer: 1 },
+  { id: "energy-4-teen-4", theme: "Energy", level: 4, ageGroup: "Teen", question: "Solid-state batteries?", options: ["Liquid", "New safer battery tech", "Old", "None"], correctAnswer: 1 },
+  { id: "energy-4-teen-5", theme: "Energy", level: 4, ageGroup: "Teen", question: "Ocean thermal energy?", options: ["Wind", "Heat diff between sea layers", "Waves", "Tides"], correctAnswer: 1 },
+  // Level 4 - Adult
+  { id: "energy-4-adult-1", theme: "Energy", level: 4, ageGroup: "Adult", question: "Curtailment?", options: ["Adding", "Reducing output to balance grid", "Mining", "Selling"], correctAnswer: 1 },
+  { id: "energy-4-adult-2", theme: "Energy", level: 4, ageGroup: "Adult", question: "Ancillary services?", options: ["Core", "Grid stability support", "Bills", "Ads"], correctAnswer: 1 },
+  { id: "energy-4-adult-3", theme: "Energy", level: 4, ageGroup: "Adult", question: "Demand response?", options: ["Ads", "Adjusting usage based on load", "Selling", "Buying"], correctAnswer: 1 },
+  { id: "energy-4-adult-4", theme: "Energy", level: 4, ageGroup: "Adult", question: "Combined heat and power (CHP)?", options: ["Single", "Using waste heat/elec both", "Solar", "Wind"], correctAnswer: 1 },
+  { id: "energy-4-adult-5", theme: "Energy", level: 4, ageGroup: "Adult", question: "Small modular reactors (SMRs)?", options: ["Large", "Compact nuclear design", "Solar", "Wind"], correctAnswer: 1 },
+
+  // Level 5 - Kid
+  { id: "energy-5-kid-1", theme: "Energy", level: 5, ageGroup: "Kid", question: "Every bit helps?", options: ["Yes", "No", "Maybe", "Later"], correctAnswer: 0 },
+  { id: "energy-5-kid-2", theme: "Energy", level: 5, ageGroup: "Kid", question: "Energy expert?", options: ["Saves power", "Wastes it", "Lazy", "Loud"], correctAnswer: 0 },
+  { id: "energy-5-kid-3", theme: "Energy", level: 5, ageGroup: "Kid", question: "Earth's light?", options: ["The Sun", "Phones", "TV", "Cars"], correctAnswer: 0 },
+  { id: "energy-5-kid-4", theme: "Energy", level: 5, ageGroup: "Kid", question: "Nature's breath?", options: ["Wind power", "Smoke", "Dust", "No"], correctAnswer: 0 },
+  { id: "energy-5-kid-5", theme: "Energy", level: 5, ageGroup: "Kid", question: "Better future?", options: ["Clean energy", "Dirty power", "Hard", "No"], correctAnswer: 0 },
+  // Level 5 - Teen
+  { id: "energy-5-teen-1", theme: "Energy", level: 5, ageGroup: "Teen", question: "Net-positive buildings?", options: ["Negative", "Produce more energy than used", "Normal", "Flat"], correctAnswer: 1 },
+  { id: "energy-5-teen-2", theme: "Energy", level: 5, ageGroup: "Teen", question: "Virtual power plants?", options: ["Video game", "Aggregated local energy units", "Ghost", "None"], correctAnswer: 1 },
+  { id: "energy-5-teen-3", theme: "Energy", level: 5, ageGroup: "Teen", question: "Space-based solar power?", options: ["Ground", "Collecting sun energy in orbit", "Moon", "Mars"], correctAnswer: 1 },
+  { id: "energy-5-teen-4", theme: "Energy", level: 5, ageGroup: "Teen", question: "Superconductors?", options: ["Nets", "Zero-resistance power flow", "Fences", "Walls"], correctAnswer: 1 },
+  { id: "energy-5-teen-5", theme: "Energy", level: 5, ageGroup: "Teen", question: "Thermonuclear fusion?", options: ["Fission", "Sun-like energy generation", "Burning", "Milling"], correctAnswer: 1 },
+  // Level 5 - Adult
+  { id: "energy-5-adult-1", theme: "Energy", level: 5, ageGroup: "Adult", question: "Blue hydrogen?", options: ["Green", "Hydrogen from fossils + CCS", "Water", "Air"], correctAnswer: 1 },
+  { id: "energy-5-adult-2", theme: "Energy", level: 5, ageGroup: "Adult", question: "Grid defection?", options: ["Joining", "Leaving main grid for local", "Selling", "Buying"], correctAnswer: 1 },
+  { id: "energy-5-adult-3", theme: "Energy", level: 5, ageGroup: "Adult", question: "Exergy?", options: ["Energy", "Useful work potential", "Heat", "Light"], correctAnswer: 1 },
+  { id: "energy-5-adult-4", theme: "Energy", level: 5, ageGroup: "Adult", question: "Vehicle-to-grid (V2G)?", options: ["Driving", "Using EV batteries for grid", "Racing", "Farming"], correctAnswer: 1 },
+  { id: "energy-5-adult-5", theme: "Energy", level: 5, ageGroup: "Adult", question: "Energy democratization?", options: ["Control", "Citizen-owned energy control", "Buying", "Selling"], correctAnswer: 1 },
+];
 
 export default questions;

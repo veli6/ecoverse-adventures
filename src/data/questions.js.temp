@@ -1,0 +1,16 @@
+const questions = [
+  // Themes: Climate, Wildlife, Pollution, Water, Energy
+  // Levels: 1 to 5
+  // Age Groups: Kid, Teen, Adult
+
+  // --- CLIMATE ---
+  // Level 1
+  ...[1,2,3,4,5].map(i => ({ id: `c-l1-k-${i}`, theme: "Climate", level: 1, ageGroup: "Kid", question: `Kid Question C-L1-${i}`, options: ["A", "B", "C", "D"], correctAnswer: 0 })),
+  ...[1,2,3,4,5].map(i => ({ id: `c-l1-t-${i}`, theme: "Climate", level: 1, ageGroup: "Teen", question: `Teen Question C-L1-${i}`, options: ["A", "B", "C", "D"], correctAnswer: 1 })),
+  ...[1,2,3,4,5].map(i => ({ id: `c-l1-a-${i}`, theme: "Climate", level: 1, ageGroup: "Adult", question: `Adult Question C-L1-${i}`, options: ["A", "B", "C", "D"], correctAnswer: 2 })),
+  // Level 2
+  ...[1,2,3,4,5].map(i => ({ id: `c-l2-k-${i}`, theme: "Climate", level: 2, ageGroup: "Kid", question: `Kid Question C-L2-${i}`, options: ["A", "B", "C", "D"], correctAnswer: 0 })),
+  ...[1,2,3,4,5].map(i => ({ id: `c-l2-t-${i}`, theme: "Climate", level: 2, ageGroup: "Teen", question: `Teen Question C-L2-${i}`, options: ["A", "B", "C", "D"], correctAnswer: 1 })),
+  ...[1,2,3,4,5].map(i => ({ id: `c-l2-a-${i}`, theme: "Climate", level: 2, ageGroup: "Adult", question: `Adult Question C-L2-${i}`, options: ["A", "B", "C", "D"], correctAnswer: 2 })),
+  // ... and so on
+];

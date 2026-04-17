@@ -1,7 +1,8 @@
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { FiLogOut, FiZap, FiTrendingUp, FiAward } from 'react-icons/fi';
+import { FiLogOut, FiZap, FiTrendingUp, FiAward, FiPlay } from 'react-icons/fi';
 import { GiTreehouse } from 'react-icons/gi';
+import { useNavigate } from 'react-router-dom';
 
 function StatCard({ icon, label, value, color, delay }) {
   return (
@@ -24,8 +25,12 @@ function StatCard({ icon, label, value, color, delay }) {
 
 export default function DashboardPage() {
   const { userData, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const ecoPoints = userData?.ecoPoints || 0;
+  // Fetch quiz points from localStorage
+  const quizPoints = parseInt(localStorage.getItem('ecoPoints') || '0');
+  const ecoPoints = (userData?.ecoPoints || 0) + quizPoints;
+  
   const streak = userData?.streakCount || 0;
   const trees = userData?.treesCollected || 0;
   const completedLevels = userData?.completedLevels ? Object.keys(userData.completedLevels).length : 0;
@@ -51,12 +56,20 @@ export default function DashboardPage() {
             Welcome back, <span className="text-eco-600 font-semibold">{userData?.username || 'EcoWarrior'}</span>! 🌿
           </p>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all bg-white"
-        >
-          <FiLogOut size={22} /> Logout
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/quiz')}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-eco-600 text-white hover:bg-eco-700 transition-all shadow-lg"
+          >
+            <FiPlay size={22} /> Start Quiz
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all bg-white"
+          >
+            <FiLogOut size={22} /> Logout
+          </button>
+        </div>
       </motion.div>
 
       {/* Stats Grid */}
