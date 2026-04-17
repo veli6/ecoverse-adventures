@@ -5,14 +5,10 @@ export default defineConfig({
     plugins: [react()],
     // Use the 'preview' block for the 'vite preview' command
     preview: {
-        allowedHosts: [
-            'ecoverse-adventures.onrender.com'
-        ]
+        allowedHosts: true
     },
     // Keep the 'server' block if you also want it to work in 'vite dev'
     server: {
-        allowedHosts: [
-            'ecoverse-adventures.onrender.com'
-        ]
+        allowedHosts: true
     }
 })
