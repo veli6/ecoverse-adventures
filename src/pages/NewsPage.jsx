@@ -1,127 +1,173 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useGame } from '../contexts/GameContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiArrowLeft, FiBookmark, FiExternalLink } from 'react-icons/fi';
+import { motion } from 'framer-motion';
+import { FiArrowLeft, FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 
-const NEWS = [
-  { id:'n1', title:'Global Coral Reefs Show Signs of Recovery', summary:'Scientists report coral reef recovery in several regions thanks to conservation efforts and reduced pollution.', category:'Wildlife', image:'🪸', whyMatters:'Coral reefs support 25% of marine life. Recovery means healthier oceans for millions of species.', simple:'Corals are coming back to life in some places because people are taking better care of the oceans!' },
-  { id:'n2', title:'Electric Vehicles Outsell Gas Cars for First Time', summary:'EV sales have surpassed traditional combustion engine vehicles in multiple European countries.', category:'Energy', image:'🚗', whyMatters:'Transportation accounts for 29% of emissions. Mass EV adoption significantly reduces carbon output.', simple:'More people are buying electric cars than gas cars now, which means less pollution!' },
-  { id:'n3', title:'Amazon Deforestation Drops 40% This Year', summary:'New satellite data shows a significant decrease in Amazon rainforest deforestation rates.', category:'Wildlife', image:'🌳', whyMatters:'The Amazon produces 20% of world oxygen. Less deforestation means more carbon absorption.', simple:'People are cutting down fewer trees in the Amazon forest, which is great for animals and clean air!' },
-  { id:'n4', title:'Ocean Plastic Cleanup Removes 10 Million kg', summary:'The Ocean Cleanup project has successfully removed over 10 million kilograms of plastic from the Pacific.', category:'Pollution', image:'♻️', whyMatters:'Removing ocean plastic protects marine life and prevents microplastic contamination of seafood.', simple:'A big cleanup project pulled tons of plastic out of the ocean, making it safer for sea animals!' },
-  { id:'n5', title:'Solar Energy Now Cheapest Power Source Globally', summary:'Solar has become the cheapest form of electricity generation in history, beating coal and gas.', category:'Energy', image:'☀️', whyMatters:'Cheap solar accelerates the transition away from fossil fuels, reducing emissions dramatically.', simple:'Making electricity from sunlight is now cheaper than burning coal or gas!' },
-  { id:'n6', title:'New Species of Deep-Sea Fish Discovered', summary:'Marine biologists have discovered three new species of bioluminescent fish in the Mariana Trench.', category:'Wildlife', image:'🐟', whyMatters:'Discovering new species highlights how much we still need to learn and protect in our oceans.', simple:'Scientists found amazing glowing fish living deep in the ocean that nobody knew about before!' },
-  { id:'n7', title:'City Bans Single-Use Plastics Completely', summary:'San Francisco becomes the first major US city to completely ban all single-use plastic items.', category:'Pollution', image:'🚫', whyMatters:'City-level bans create models for other cities and reduce millions of plastic items from entering waste streams.', simple:'A big city said NO to all throwaway plastic items like bags, straws, and containers!' },
-  { id:'n8', title:'Global Tree Planting Initiative Hits 1 Billion', summary:'The worldwide reforestation campaign has planted its billionth tree across 50 countries.', category:'Climate', image:'🌲', whyMatters:'Trees absorb CO2 and produce oxygen. A billion new trees significantly impact global carbon levels.', simple:'People around the world planted ONE BILLION trees together!' },
-  { id:'n9', title:'Arctic Ice Shows Unexpected Growth Pattern', summary:'New measurements show certain Arctic ice formations are thicker than predicted by climate models.', category:'Climate', image:'🧊', whyMatters:'Understanding ice behavior helps us better predict sea level changes and plan for the future.', simple:'Some ice in the Arctic is growing thicker than scientists expected, which gives a bit of hope!' },
-  { id:'n10', title:'Wind Farms Power Entire Country for 48 Hours', summary:'Denmark ran entirely on wind power for two consecutive days, setting a new world record.', category:'Energy', image:'💨', whyMatters:'This proves that renewable energy can fully replace fossil fuels for extended periods.', simple:'A whole country used ONLY wind power for two days straight!' },
-  { id:'n11', title:'Endangered Tiger Population Doubles', summary:'Conservation efforts in India have led to a doubling of the Bengal tiger population since 2010.', category:'Wildlife', image:'🐯', whyMatters:'Tigers are keystone species. Their recovery indicates healthier forest ecosystems overall.', simple:'There are now twice as many tigers in India because people worked hard to protect them!' },
-  { id:'n12', title:'New Biodegradable Packaging Replaces Styrofoam', summary:'A startup has developed mushroom-based packaging that decomposes in 45 days, replacing styrofoam.', category:'Pollution', image:'🍄', whyMatters:'Styrofoam takes 500 years to decompose. This alternative could eliminate billions of containers from landfills.', simple:'Someone made packaging from mushrooms that turns back into dirt in just 45 days!' },
-  { id:'n13', title:'Countries Agree to Protect 30% of Oceans by 2030', summary:'UN treaty signed by 190 nations commits to protecting 30% of the world\'s oceans.', category:'Climate', image:'🌊', whyMatters:'Protected ocean areas allow marine ecosystems to recover and fish populations to rebound.', simple:'Almost every country agreed to protect a big part of the ocean so sea life can thrive!' },
-  { id:'n14', title:'Air Quality Improves in 80% of Major Cities', summary:'WHO data shows significant air quality improvements in most of the world\'s largest cities.', category:'Pollution', image:'🌬️', whyMatters:'Better air quality reduces respiratory diseases and saves millions of lives annually.', simple:'The air in most big cities is getting cleaner, which means healthier lungs for everyone!' },
-  { id:'n15', title:'Students Lead Largest Climate March in History', summary:'Over 6 million students worldwide participated in the global climate strike demanding action.', category:'Climate', image:'✊', whyMatters:'Youth activism drives policy changes and raises awareness about climate urgency.', simple:'Millions of students skipped school to march and ask world leaders to save the planet!' },
+// Fallback news in case RSS fails
+const FALLBACK_NEWS = [
+  { 
+    title: 'Global Coral Reefs Show Signs of Recovery', 
+    description: 'Scientists report coral reef recovery in several regions thanks to conservation efforts and reduced pollution.', 
+    link: 'https://news.google.com/search?q=coral+recovery',
+    image: '🪸'
+  },
+  { 
+    title: 'Electric Vehicles Outsell Gas Cars for First Time', 
+    description: 'EV sales have surpassed traditional combustion engine vehicles in multiple European countries.', 
+    link: 'https://news.google.com/search?q=ev+sales',
+    image: '🚗'
+  }
 ];
-
-const CATEGORIES = ['All', 'Climate', 'Wildlife', 'Energy', 'Pollution'];
 
 export default function NewsPage() {
   const navigate = useNavigate();
-  const { userData } = useAuth();
-  const { readNews } = useGame();
-  const [filter, setFilter] = useState('All');
-  const [expandedId, setExpandedId] = useState(null);
-  const [showSimple, setShowSimple] = useState({});
-  const [bookmarks, setBookmarks] = useState([]);
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const readIds = userData?.readNewsIds || [];
-  const selectedTheme = userData?.selectedTheme;
+  const fetchNews = async () => {
+    setLoading(true);
+    try {
+      const newsModes = ["trending", "india", "user"];
+      const mode = newsModes[Math.floor(Math.random() * newsModes.length)];
+      const selectedTheme = localStorage.getItem("selectedTheme") || "environment";
+      
+      let query = "environment";
+      if (mode === "trending") {
+        query = "climate change OR global warming OR sustainability";
+      } else if (mode === "india") {
+        query = "environment India pollution air quality Delhi climate India";
+      } else if (mode === "user") {
+        query = selectedTheme + " environment";
+      }
 
-  let filtered = filter === 'All' ? NEWS : NEWS.filter(n => n.category === filter);
-  // Prioritize by user's theme
-  if (selectedTheme) {
-    const themeMap = { plastic: 'Pollution', water: 'Wildlife', climate: 'Climate', energy: 'Energy', wildlife: 'Wildlife' };
-    const preferredCat = themeMap[selectedTheme];
-    filtered.sort((a, b) => (b.category === preferredCat ? 1 : 0) - (a.category === preferredCat ? 1 : 0));
-  }
+      const RSS_URL = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-IN&gl=IN&ceid=IN:en`;
+      const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+      
+      const res = await fetch(url, { cache: "no-store" });
+      const data = await res.json();
 
-  const handleRead = async (id) => {
-    if (!readIds.includes(id)) await readNews(id);
-    setExpandedId(expandedId === id ? null : id);
+      const items = data.items || [];
+      setNews(items.slice(0, 8));
+    } catch (err) {
+      console.error('RSS Fetch error:', err);
+      if (news.length === 0) {
+        setNews(FALLBACK_NEWS);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
   return (
-    <div className="page-container max-w-4xl mx-auto min-h-screen py-8">
-      <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-eco-600 hover:text-eco-700 font-medium mb-6 bg-transparent border-none p-0">
-        <FiArrowLeft size={22} /> Dashboard
-      </button>
+    <div style={{ backgroundColor: '#0f172a', minHeight: '100vh', color: '#f8fafc', padding: '40px 20px', fontFamily: 'sans-serif' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px', 
+            color: '#22c55e', 
+            background: 'none', 
+            border: 'none', 
+            cursor: 'pointer',
+            fontSize: '18px',
+            marginBottom: '30px',
+            padding: 0
+          }}
+        >
+          <FiArrowLeft /> Back to Dashboard
+        </button>
 
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-4xl font-extrabold mb-2"><span className="eco-gradient-text">Eco News</span> 📰</h1>
-        <p className="text-gray-500 mb-6">Stay informed, earn +5 points per article!</p>
-      </motion.div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        {CATEGORIES.map(c => (
-          <button key={c} onClick={() => setFilter(c)}
-            className={`px-5 py-3 rounded-xl font-semibold transition-all ${filter === c ? 'bg-eco-500 text-white shadow-eco' : 'bg-white text-gray-600 border border-gray-200 hover:bg-eco-50'}`}>
-            {c}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+          <div>
+            <h1 style={{ fontSize: '42px', fontWeight: '800', margin: 0 }}>
+              <span style={{ color: '#22c55e' }}>Eco</span> News 📰
+            </h1>
+            <p style={{ color: '#94a3b8', marginTop: '10px', fontSize: '18px' }}>
+              Dynamic updates from Google News RSS.
+            </p>
+          </div>
+          <button 
+            onClick={fetchNews} 
+            disabled={loading}
+            style={{ 
+              padding: '12px', 
+              borderRadius: '12px', 
+              backgroundColor: '#1e293b', 
+              color: '#22c55e', 
+              border: '1px solid #334155',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <FiRefreshCw className={loading ? 'animate-spin' : ''} /> {loading ? 'Refreshing...' : 'Refresh'}
           </button>
-        ))}
-      </div>
+        </div>
 
-      {/* News List */}
-      <div className="space-y-5">
-        {filtered.map((n, i) => (
-          <motion.div key={n.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className="eco-card p-6">
-            <div className="flex items-start gap-4">
-              <span className="text-4xl flex-shrink-0">{n.image}</span>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="px-3 py-1 rounded-full bg-eco-100 text-eco-700 font-medium" style={{ fontSize: '14px' }}>{n.category}</span>
-                  {readIds.includes(n.id) && <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-500 font-medium" style={{ fontSize: '14px' }}>✓ Read +5pts</span>}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '100px 0' }}>
+            <div style={{ fontSize: '24px', color: '#22c55e' }}>Fetching latest news...</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {news.map((item, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                style={{ 
+                  backgroundColor: '#1e293b', 
+                  borderRadius: '20px', 
+                  padding: '24px', 
+                  border: '1px solid #334155',
+                  transition: 'transform 0.2s',
+                  cursor: 'default'
+                }}
+              >
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <div style={{ fontSize: '40px' }}>{item.image || '🌍'}</div>
+                  <div style={{ flex: 1 }}>
+                    {item.author && (
+                      <span style={{ color: '#22c55e', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        {item.author}
+                      </span>
+                    )}
+                    <h3 style={{ fontSize: '22px', fontWeight: '700', margin: '8px 0', lineHeight: '1.3' }}>
+                      {item.title}
+                    </h3>
+                    <p 
+                      style={{ color: '#94a3b8', fontSize: '16px', lineHeight: '1.5', margin: '0 0 20px 0' }}
+                      dangerouslySetInnerHTML={{ __html: item.description }}
+                    />
+                    <a 
+                      href={item.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ 
+                        color: '#22c55e', 
+                        textDecoration: 'none', 
+                        fontWeight: 'bold', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '6px' 
+                      }}
+                    >
+                      Read Full Article <FiExternalLink />
+                    </a>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{n.title}</h3>
-                <p className="text-gray-600">{n.summary}</p>
-
-                <AnimatePresence>
-                  {expandedId === n.id && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                      className="mt-4 space-y-3 overflow-hidden">
-                      <div className="p-4 bg-eco-50 rounded-xl border border-eco-200">
-                        <p className="font-bold text-eco-700 mb-1">🌍 Why This Matters</p>
-                        <p className="text-gray-700">{n.whyMatters}</p>
-                      </div>
-                      {showSimple[n.id] && (
-                        <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
-                          <p className="font-bold text-indigo-700 mb-1">🤖 In Simple Terms</p>
-                          <p className="text-gray-700">{n.simple}</p>
-                        </div>
-                      )}
-                      <button onClick={() => setShowSimple(s => ({ ...s, [n.id]: !s[n.id] }))}
-                        className="text-indigo-600 hover:text-indigo-700 font-medium bg-transparent border-none p-0">
-                        {showSimple[n.id] ? 'Hide simple explanation' : '🤖 Explain in simple terms'}
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="flex items-center gap-4 mt-4">
-                  <button onClick={() => handleRead(n.id)}
-                    className="text-eco-600 hover:text-eco-700 font-medium flex items-center gap-1 bg-transparent border-none p-0">
-                    <FiExternalLink size={18} /> {expandedId === n.id ? 'Collapse' : 'Read More'}
-                  </button>
-                  <button onClick={() => setBookmarks(b => b.includes(n.id) ? b.filter(x => x !== n.id) : [...b, n.id])}
-                    className={`flex items-center gap-1 font-medium bg-transparent border-none p-0 ${bookmarks.includes(n.id) ? 'text-amber-500' : 'text-gray-400 hover:text-gray-600'}`}>
-                    <FiBookmark size={18} /> {bookmarks.includes(n.id) ? 'Saved' : 'Save'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

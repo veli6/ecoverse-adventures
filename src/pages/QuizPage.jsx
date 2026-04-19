@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { db } from '../lib/firebase';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import { useAuth } from '../contexts/AuthContext';
 import questions from '../data/questions';
+import { FiTrendingUp, FiStar, FiAward } from 'react-icons/fi';
 
 const THEMES = ['Climate', 'Wildlife', 'Pollution', 'Water', 'Energy'];
 const AGE_GROUPS = ['Kid', 'Teen', 'Adult'];
@@ -15,48 +20,68 @@ const CORRECT_MESSAGE = "Correct! 🌱 Earth approves your intelligence 😎";
 
 export default function QuizPage() {
   const navigate = useNavigate();
+  const auth = useAuth();
+  
+  // Safely get context values
+  const currentUser = auth?.currentUser;
+  const refreshUserData = auth?.refreshUserData;
 
   // Step state: 'selection', 'quiz', 'result'
   const [step, setStep] = useState('selection');
   
-  // Selection state
   const [selectedTheme, setSelectedTheme] = useState('');
   const [selectedAge, setSelectedAge] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState(1);
+  const [level, setLevel] = useState(1);
 
   // Quiz state
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState(null); // { isCorrect: boolean, message: string }
+  const [feedback, setFeedback] = useState(null); 
   const [isAnswered, setIsAnswered] = useState(false);
   const [showDidYouKnow, setShowDidYouKnow] = useState(false);
 
   // Progress state
-  const [completedLevels, setCompletedLevels] = useState({});
+  const [completedLevels, setCompletedLevels] = useState([]);
+  const [trees, setTrees] = useState(0);
+  const [ecoPoints, setEcoPoints] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('completedLevels') || '{}');
-    setCompletedLevels(saved);
+    // Initial loading
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+
+    const savedTrees = parseInt(localStorage.getItem('trees') || '0') || 0;
+    const savedPoints = parseInt(localStorage.getItem('ecoPoints') || '0') || 0;
+    setTrees(savedTrees);
+    setEcoPoints(savedPoints);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  const getHighestUnlockedLevel = (theme) => {
-    const completed = completedLevels[theme] || 0;
-    return Math.min(completed + 1, 5);
-  };
+  useEffect(() => {
+    if (selectedTheme && selectedAge) {
+      const progress = JSON.parse(localStorage.getItem('ecoProgress') || '{}');
+      const key = `${selectedTheme}_${selectedAge}`;
+      const savedLevel = progress[key] || 1;
+      setLevel(savedLevel);
+      
+      const savedCompleted = JSON.parse(localStorage.getItem(`completedLevels_${selectedTheme}_${selectedAge}`) || '[]');
+      setCompletedLevels(savedCompleted);
+    }
+  }, [selectedTheme, selectedAge]);
 
-  // Initialize/Reset
   const startQuiz = () => {
-    if (!selectedTheme || !selectedAge || !selectedLevel) return;
-
-    // Filter questions by theme, age, AND level
-    const filtered = questions.filter(q => 
+    if (!selectedTheme || !selectedAge || !level) return;
+    
+    const filtered = (questions || []).filter(q => 
       q.theme === selectedTheme && 
       q.ageGroup === selectedAge &&
-      q.level === selectedLevel
+      q.level === level
     );
 
-    // Pick 5 (or fewer if not available)
     const shuffled = [...filtered].sort(() => 0.5 - Math.random()).slice(0, 5);
     
     setQuizQuestions(shuffled);
@@ -69,7 +94,7 @@ export default function QuizPage() {
   };
 
   const handleAnswer = (optionIndex) => {
-    if (isAnswered) return;
+    if (isAnswered || !quizQuestions[currentIndex]) return;
 
     const currentQ = quizQuestions[currentIndex];
     const correct = optionIndex === currentQ.correctAnswer;
@@ -81,13 +106,17 @@ export default function QuizPage() {
       setScore(prev => prev + 10);
       setFeedback({ 
         isCorrect: true, 
+        selectedIndex: optionIndex,
         message: CORRECT_MESSAGE,
-        points: "+10 Eco Points"
+        points: "+10 Eco Points",
+        explanation: currentQ.explanation,
+        source: currentQ.source
       });
     } else {
       const randomMsg = FUNNY_WRONG_MESSAGES[Math.floor(Math.random() * FUNNY_WRONG_MESSAGES.length)];
       setFeedback({ 
         isCorrect: false, 
+        selectedIndex: optionIndex,
         message: randomMsg,
         correctAnswerText: currentQ.options[currentQ.correctAnswer],
         explanation: currentQ.explanation,
@@ -95,7 +124,6 @@ export default function QuizPage() {
       });
     }
 
-    // Save used ID
     const usedIds = JSON.parse(localStorage.getItem('usedQuestionIds') || '[]');
     if (!usedIds.includes(currentQ.id)) {
       usedIds.push(currentQ.id);
@@ -103,276 +131,222 @@ export default function QuizPage() {
     }
   };
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (currentIndex + 1 < quizQuestions.length) {
       setCurrentIndex(prev => prev + 1);
       setIsAnswered(false);
       setFeedback(null);
       setShowDidYouKnow(false);
     } else {
-      // Save points to localStorage
-      const totalPoints = parseInt(localStorage.getItem('ecoPoints') || '0') + score;
-      localStorage.setItem('ecoPoints', totalPoints.toString());
-
-      // Update completed levels
-      if (score >= 30) { // Assume 3 out of 5 correct is a pass
-        const currentCompleted = completedLevels[selectedTheme] || 0;
-        if (selectedLevel > currentCompleted) {
-          const newCompleted = { ...completedLevels, [selectedTheme]: selectedLevel };
-          setCompletedLevels(newCompleted);
-          localStorage.setItem('completedLevels', JSON.stringify(newCompleted));
+      // End of Quiz
+      if (currentUser && db) {
+        try {
+          const userDoc = doc(db, 'users', currentUser.uid);
+          await updateDoc(userDoc, {
+            ecoPoints: increment(score),
+            treesCollected: increment(Math.floor(score / 50))
+          });
+          if (refreshUserData) await refreshUserData();
+        } catch (err) {
+          console.error("Firestore sync failed:", err);
         }
+      }
+
+      const totalPoints = (parseInt(localStorage.getItem('ecoPoints') || '0') || 0) + score;
+      localStorage.setItem('ecoPoints', totalPoints.toString());
+      setEcoPoints(totalPoints);
+      
+      const totalTrees = Math.floor(totalPoints / 100) || 0;
+      localStorage.setItem('trees', totalTrees.toString());
+      setTrees(totalTrees);
+
+      if (score >= 30) { 
+        // 1. Update theme-specific progress (for unlocking next level)
+        const key = `${selectedTheme}_${selectedAge}`;
+        const savedThemeProgress = JSON.parse(localStorage.getItem(`completedLevels_${key}`) || '[]');
+        if (!savedThemeProgress.includes(level)) {
+          const newThemeProgress = [...savedThemeProgress, level];
+          setCompletedLevels(newThemeProgress);
+          localStorage.setItem(`completedLevels_${key}`, JSON.stringify(newThemeProgress));
+        }
+
+        // 2. Update global completedLevels (for Dashboard stats)
+        const globalKey = 'completedLevels';
+        const globalProgress = JSON.parse(localStorage.getItem(globalKey) || '[]');
+        const levelIdentifier = `${selectedTheme}_${selectedAge}_${level}`;
+        if (!globalProgress.includes(levelIdentifier)) {
+          globalProgress.push(levelIdentifier);
+          localStorage.setItem(globalKey, JSON.stringify(globalProgress));
+        }
+      }
+
+      const progress = JSON.parse(localStorage.getItem('ecoProgress') || '{}');
+      const key = `${selectedTheme}_${selectedAge}`;
+      const currentUnlocked = progress[key] || 1;
+      
+      if (level === currentUnlocked) {
+        const nextLevel = Math.min(currentUnlocked + 1, 5);
+        progress[key] = nextLevel;
+        localStorage.setItem('ecoProgress', JSON.stringify(progress));
+        setLevel(nextLevel);
       }
       
       setStep('result');
     }
   };
 
-  // UI Components
-  if (step === 'selection') {
-    const highestUnlocked = getHighestUnlockedLevel(selectedTheme);
+  const getCityElements = (points) => {
+    const elements = ["🌱"];
+    const treeCount = Math.min(Math.floor(points / 100), 5); // Limit to 5 for safety
+    for (let i = 0; i < treeCount; i++) {
+      elements.push("🌳");
+    }
+    if (points >= 200) elements.push("🏡");
+    if (points >= 300) elements.push("🌞");
+    if (points >= 500) elements.push("🏢");
+    return elements;
+  };
 
+  if (loading) {
+    return <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>Loading...</div>;
+  }
+
+  if (step === 'selection') {
     return (
       <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-        <h1 style={{ fontSize: '32px', marginBottom: '30px' }}>EcoVerse Adventures 🌍</h1>
-        
+        <h1>EcoVerse Adventures 🌍</h1>
         <div style={{ marginBottom: '24px' }}>
-          <p style={{ fontSize: '20px', fontWeight: 'bold' }}>1. Choose a Theme:</p>
+          <p style={{ fontWeight: 'bold' }}>Choose Theme:</p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {THEMES.map(t => (
-              <button 
-                key={t}
-                onClick={() => {
-                  setSelectedTheme(t);
-                  setSelectedLevel(1); // Reset level on theme change
-                }}
-                style={{
-                  padding: '10px 18px',
-                  fontSize: '18px',
-                  borderRadius: '8px',
-                  border: '2px solid #22c55e',
-                  backgroundColor: selectedTheme === t ? '#22c55e' : 'white',
-                  color: selectedTheme === t ? 'white' : '#22c55e',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {t}
-              </button>
+              <button key={t} onClick={() => setSelectedTheme(t)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #22c55e', backgroundColor: selectedTheme === t ? '#22c55e' : 'white', color: selectedTheme === t ? 'white' : '#22c55e' }}>{t}</button>
             ))}
           </div>
         </div>
-
         <div style={{ marginBottom: '24px' }}>
-          <p style={{ fontSize: '20px', fontWeight: 'bold' }}>2. Choose Age Group:</p>
+          <p style={{ fontWeight: 'bold' }}>Choose Age:</p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {AGE_GROUPS.map(a => (
-              <button 
-                key={a}
-                onClick={() => setSelectedAge(a)}
-                style={{
-                  padding: '10px 18px',
-                  fontSize: '18px',
-                  borderRadius: '8px',
-                  border: '2px solid #22c55e',
-                  backgroundColor: selectedAge === a ? '#22c55e' : 'white',
-                  color: selectedAge === a ? 'white' : '#22c55e',
-                  cursor: 'pointer'
-                }}
-              >
-                {a}
-              </button>
+              <button key={a} onClick={() => setSelectedAge(a)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #22c55e', backgroundColor: selectedAge === a ? '#22c55e' : 'white', color: selectedAge === a ? 'white' : '#22c55e' }}>{a}</button>
             ))}
           </div>
         </div>
-
         {selectedTheme && (
-          <div style={{ marginBottom: '30px' }}>
-            <p style={{ fontSize: '20px', fontWeight: 'bold' }}>3. Select Level:</p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {[1, 2, 3, 4, 5].map(lvl => {
-                const isUnlocked = lvl <= highestUnlocked;
-                return (
-                  <button 
-                    key={lvl}
-                    disabled={!isUnlocked}
-                    onClick={() => setSelectedLevel(lvl)}
-                    style={{
-                      width: '50px',
-                      height: '50px',
-                      fontSize: '18px',
-                      borderRadius: '50%',
-                      border: '2px solid #22c55e',
-                      backgroundColor: !isUnlocked ? '#e2e8f0' : selectedLevel === lvl ? '#22c55e' : 'white',
-                      color: !isUnlocked ? '#94a3b8' : selectedLevel === lvl ? 'white' : '#22c55e',
-                      cursor: isUnlocked ? 'pointer' : 'not-allowed',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {lvl}
-                  </button>
-                );
-              })}
+           <div style={{ marginBottom: '24px' }}>
+            <p style={{ fontWeight: 'bold' }}>Select Level:</p>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {[1, 2, 3, 4, 5].map(lvl => (
+                <button key={lvl} onClick={() => setLevel(lvl)} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid #22c55e', backgroundColor: level === lvl ? '#22c55e' : 'white', color: level === lvl ? 'white' : '#22c55e' }}>{lvl}</button>
+              ))}
             </div>
-            {!selectedTheme && <p style={{ color: '#64748b', marginTop: '8px' }}>Please select a theme first</p>}
           </div>
         )}
-
-        <button 
-          onClick={startQuiz}
-          disabled={!selectedTheme || !selectedAge}
-          style={{
-            width: '100%',
-            padding: '16px',
-            fontSize: '22px',
-            fontWeight: 'bold',
-            borderRadius: '12px',
-            border: 'none',
-            backgroundColor: (!selectedTheme || !selectedAge) ? '#cbd5e1' : '#22c55e',
-            color: 'white',
-            cursor: (!selectedTheme || !selectedAge) ? 'not-allowed' : 'pointer',
-            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-          }}
-        >
-          Start Level {selectedLevel}
-        </button>
+        <button onClick={startQuiz} disabled={!selectedTheme || !selectedAge} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: 'none', backgroundColor: '#22c55e', color: 'white', fontWeight: 'bold' }}>Start Quiz</button>
       </div>
     );
   }
 
   if (step === 'quiz') {
     const q = quizQuestions[currentIndex];
+    if (!q) return <div style={{ padding: '40px', textAlign: 'center' }}>No questions found.</div>;
     return (
-      <div style={{ padding: '20px', maxWidth: '700px', margin: '0 auto', fontFamily: 'sans-serif', backgroundColor: '#fff', minHeight: '100vh' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
-          <div style={{ textAlign: 'left' }}>
-            <span style={{ fontSize: '16px', color: '#64748b', display: 'block' }}>{selectedTheme} • Level {selectedLevel}</span>
-            <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#22c55e' }}>Question {currentIndex + 1}/{quizQuestions.length}</span>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <span style={{ fontSize: '16px', color: '#64748b', display: 'block' }}>Points</span>
-            <span style={{ fontSize: '20px', fontWeight: 'bold' }}>{score}</span>
-          </div>
+      <div style={{ padding: '20px', maxWidth: '700px', margin: '0 auto', fontFamily: 'sans-serif' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <p style={{ color: '#64748b' }}>{selectedTheme} • Level {level}</p>
+          <p style={{ fontWeight: 'bold', color: '#22c55e' }}>Question {currentIndex + 1}/5</p>
         </div>
-
-        {/* Progress Bar */}
-        <div style={{ height: '8px', width: '100%', backgroundColor: '#e2e8f0', borderRadius: '4px', marginBottom: '30px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${((currentIndex + (isAnswered ? 1 : 0)) / quizQuestions.length) * 100}%`, backgroundColor: '#22c55e', transition: 'width 0.3s' }}></div>
-        </div>
-
-        <div style={{ backgroundColor: '#f8fafc', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '24px', lineHeight: '1.4', marginBottom: '24px', color: '#1e293b' }}>{q.question}</h2>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {q.options.map((opt, idx) => {
-              let btnStyle = {
-                padding: '16px',
-                fontSize: '20px',
-                textAlign: 'left',
-                borderRadius: '12px',
-                border: '2px solid #e2e8f0',
-                backgroundColor: 'white',
-                cursor: isAnswered ? 'default' : 'pointer',
-                transition: 'all 0.2s',
-                color: '#334155'
-              };
-
-              if (isAnswered) {
-                if (idx === q.correctAnswer) {
-                  btnStyle.backgroundColor = '#dcfce7';
-                  btnStyle.borderColor = '#22c55e';
-                  btnStyle.color = '#166534';
-                } else if (feedback && !feedback.isCorrect && idx !== q.correctAnswer) {
-                   // Not the correct one
-                }
+        
+        <h2 style={{ fontSize: '24px', marginBottom: '24px', lineHeight: '1.4' }}>{q.question}</h2>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+          {q.options.map((opt, idx) => {
+            let bgColor = 'white';
+            let borderColor = '#ddd';
+            if (isAnswered) {
+              if (idx === q.correctAnswer) {
+                bgColor = '#dcfce7'; // Light green
+                borderColor = '#22c55e';
+              } else if (idx === feedback?.selectedIndex && !feedback?.isCorrect) {
+                bgColor = '#fee2e2'; // Light red
+                borderColor = '#f87171';
               }
+            }
 
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswer(idx)}
-                  disabled={isAnswered}
-                  style={btnStyle}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
+            return (
+              <button 
+                key={idx} 
+                onClick={() => handleAnswer(idx)} 
+                disabled={isAnswered} 
+                style={{ 
+                  padding: '16px', 
+                  textAlign: 'left', 
+                  borderRadius: '12px', 
+                  border: `2px solid ${borderColor}`, 
+                  backgroundColor: bgColor,
+                  fontSize: '18px',
+                  cursor: isAnswered ? 'default' : 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {opt}
+              </button>
+            );
+          })}
         </div>
 
-        {feedback && (
-          <div style={{ 
-            padding: '20px', 
-            borderRadius: '16px', 
-            marginBottom: '24px',
-            backgroundColor: feedback.isCorrect ? '#dcfce7' : '#fee2e2',
-            border: `1px solid ${feedback.isCorrect ? '#22c55e' : '#f87171'}`,
-            animation: 'fadeIn 0.5s ease-in'
-          }}>
+        {isAnswered && feedback && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ 
+              padding: '20px', 
+              borderRadius: '12px', 
+              backgroundColor: feedback.isCorrect ? '#f0fdf4' : '#fff1f2',
+              border: `1px solid ${feedback.isCorrect ? '#22c55e' : '#f87171'}`,
+              marginBottom: '20px'
+            }}
+          >
             <p style={{ 
               fontSize: '20px', 
               fontWeight: 'bold', 
               color: feedback.isCorrect ? '#166534' : '#991b1b',
-              margin: '0 0 8px 0',
-              textAlign: 'center'
+              margin: '0 0 10px 0'
             }}>
               {feedback.message}
             </p>
-            {feedback.isCorrect && (
-              <p style={{ fontSize: '18px', color: '#166534', textAlign: 'center', margin: 0, fontWeight: 'bold' }}>
-                {feedback.points}
+            {!feedback.isCorrect && (
+              <p style={{ color: '#991b1b', margin: '0 0 10px 0' }}>
+                <strong>Correct Answer:</strong> {feedback.correctAnswerText}
               </p>
             )}
-            {!feedback.isCorrect && (
-              <div style={{ marginTop: '12px', borderTop: '1px solid #fecaca', paddingTop: '12px' }}>
-                <p style={{ color: '#991b1b', margin: '0 0 8px 0' }}>
-                  <strong>Correct Answer:</strong> {feedback.correctAnswerText}
-                </p>
-                <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.5', margin: '0 0 8px 0' }}>
-                  {feedback.explanation}
-                </p>
-                <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
-                  Source: <em>{feedback.source}</em>
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {showDidYouKnow && (
-          <div style={{ 
-            padding: '20px', 
-            borderRadius: '16px', 
-            marginBottom: '24px',
-            backgroundColor: '#f0fdf4',
-            borderLeft: '5px solid #22c55e',
-            color: '#166534'
-          }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>💡 Did You Know?</h3>
-            <p style={{ margin: 0, fontSize: '16px', lineHeight: '1.5' }}>
-              {q.explanation}
+            <p style={{ fontSize: '16px', color: '#475569', lineHeight: '1.5', margin: '0 0 8px 0' }}>
+              {feedback.explanation}
             </p>
-          </div>
+            {feedback.source && (
+              <p style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>
+                Source: {feedback.source}
+              </p>
+            )}
+          </motion.div>
         )}
 
         {isAnswered && (
           <button 
-            onClick={nextQuestion}
-            style={{
-              width: '100%',
-              padding: '18px',
-              fontSize: '22px',
+            onClick={nextQuestion} 
+            style={{ 
+              padding: '18px', 
+              width: '100%', 
+              borderRadius: '12px', 
+              backgroundColor: '#22c55e', 
+              color: 'white', 
+              fontSize: '20px', 
               fontWeight: 'bold',
-              borderRadius: '16px',
               border: 'none',
-              backgroundColor: '#22c55e',
-              color: 'white',
               cursor: 'pointer',
-              boxShadow: '0 4px 6px -1px rgb(34 197 94 / 0.3)'
+              boxShadow: '0 4px 6px -1px rgba(34, 197, 94, 0.2)'
             }}
           >
-            {currentIndex + 1 < quizQuestions.length ? 'Continue' : 'See Results'}
+            {currentIndex + 1 < quizQuestions.length ? 'Next Question' : 'See My Results'}
           </button>
         )}
       </div>
@@ -380,77 +354,81 @@ export default function QuizPage() {
   }
 
   if (step === 'result') {
-    const passed = score >= 30;
-    const isLastLevel = selectedLevel === 5;
-
     return (
       <div style={{ padding: '60px 20px', maxWidth: '600px', margin: '0 auto', textAlign: 'center', fontFamily: 'sans-serif' }}>
-        <h1 style={{ fontSize: '48px', marginBottom: '10px' }}>{passed ? 'Level Completed! 🏆' : 'Keep Trying! 💪'}</h1>
-        <p style={{ fontSize: '20px', color: '#64748b', marginBottom: '30px' }}>{selectedTheme} • Level {selectedLevel}</p>
+        <h1 style={{ fontSize: '40px', marginBottom: '10px' }}>
+          {score >= 30 ? 'Level Cleared! 🏆' : 'Keep Learning! 🌱'}
+        </h1>
+        <p style={{ fontSize: '18px', color: '#64748b', marginBottom: '40px' }}>{selectedTheme} • Level {level}</p>
         
-        <div style={{ backgroundColor: '#f8fafc', padding: '40px', borderRadius: '24px', border: '1px solid #e2e8f0', marginBottom: '40px' }}>
-          <p style={{ fontSize: '24px', margin: '0 0 10px 0' }}>Your Score</p>
-          <p style={{ fontSize: '64px', fontWeight: 'bold', margin: '0 0 20px 0', color: '#22c55e' }}>{score}</p>
-          <p style={{ fontSize: '18px', color: '#64748b' }}>
-            {passed ? 'Amazing work! You are becoming a true Eco Warrior.' : 'Practice makes perfect. Review the explanations and try again!'}
+        <div style={{ 
+          backgroundColor: '#f8fafc', 
+          padding: '40px', 
+          borderRadius: '24px', 
+          border: '1px solid #e2e8f0', 
+          marginBottom: '40px' 
+        }}>
+          <p style={{ fontSize: '20px', margin: '0 0 10px 0', color: '#475569' }}>Your Score</p>
+          <p style={{ fontSize: '72px', fontWeight: 'bold', margin: '0 0 10px 0', color: '#166534' }}>
+            {score}
           </p>
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {passed && !isLastLevel && (
-            <button 
-              onClick={() => {
-                setSelectedLevel(selectedLevel + 1);
-                setStep('selection');
-              }}
-              style={{
-                padding: '18px',
-                fontSize: '22px',
-                fontWeight: 'bold',
-                borderRadius: '16px',
-                border: 'none',
-                backgroundColor: '#22c55e',
-                color: 'white',
-                cursor: 'pointer'
-              }}
-            >
-              Next Level
-            </button>
-          )}
+          <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#22c55e' }}>
+            +{score} Eco Points Earned! 🌟
+          </p>
           
+          <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '10px', fontSize: '40px' }}>
+            {getCityElements(ecoPoints).map((el, i) => (
+              <span key={i} title="Your City Assets">{el}</span>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <button 
-            onClick={() => {
-              setStep('selection');
-              setIsAnswered(false);
-              setFeedback(null);
-            }}
-            style={{
-              padding: '18px',
-              fontSize: '22px',
+            onClick={() => navigate('/city')} 
+            style={{ 
+              padding: '18px', 
+              backgroundColor: '#166534', 
+              color: 'white', 
+              borderRadius: '16px', 
+              border: 'none', 
+              fontSize: '20px', 
               fontWeight: 'bold',
-              borderRadius: '16px',
-              border: '2px solid #22c55e',
-              backgroundColor: 'white',
-              color: '#22c55e',
               cursor: 'pointer'
             }}
           >
-            Try Another Level
+            🏙️ View My Eco City
+          </button>
+          
+          <button 
+            onClick={() => setStep('selection')} 
+            style={{ 
+              padding: '18px', 
+              backgroundColor: 'white', 
+              color: '#22c55e', 
+              borderRadius: '16px', 
+              border: '2px solid #22c55e', 
+              fontSize: '20px', 
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            Play Another Level
           </button>
 
           <button 
-            onClick={() => navigate('/dashboard')}
-            style={{
-              padding: '16px',
-              fontSize: '18px',
-              color: '#64748b',
+            onClick={() => navigate('/dashboard')} 
+            style={{ 
+              padding: '15px', 
+              color: '#64748b', 
               backgroundColor: 'transparent',
               border: 'none',
-              cursor: 'pointer',
-              textDecoration: 'underline'
+              fontSize: '16px',
+              textDecoration: 'underline',
+              cursor: 'pointer'
             }}
           >
-            Back to Dashboard
+            Return to Dashboard
           </button>
         </div>
       </div>
@@ -459,4 +437,3 @@ export default function QuizPage() {
 
   return null;
 }
-

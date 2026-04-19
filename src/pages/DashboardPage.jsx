@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { FiLogOut, FiZap, FiTrendingUp, FiAward, FiPlay } from 'react-icons/fi';
+import { FiLogOut, FiZap, FiTrendingUp, FiAward, FiPlay, FiMap } from 'react-icons/fi';
 import { GiTreehouse } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,13 +27,41 @@ export default function DashboardPage() {
   const { userData, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch quiz points from localStorage
-  const quizPoints = parseInt(localStorage.getItem('ecoPoints') || '0');
+  // Fetch quiz points and levels from localStorage with safety
+  const quizPoints = parseInt(localStorage.getItem('ecoPoints') || '0') || 0;
   const ecoPoints = (userData?.ecoPoints || 0) + quizPoints;
   
   const streak = userData?.streakCount || 0;
-  const trees = userData?.treesCollected || 0;
-  const completedLevels = userData?.completedLevels ? Object.keys(userData.completedLevels).length : 0;
+  
+  // Calculate trees: 1 tree per 100 points
+  const trees = Math.floor(ecoPoints / 100) || 0;
+  
+  // Update localStorage to keep it in sync
+  if (parseInt(localStorage.getItem('trees') || '0') !== trees) {
+    localStorage.setItem('trees', trees.toString());
+  }
+
+  // Calculate completed levels from global array
+  const completedLevels = JSON.parse(localStorage.getItem('completedLevels') || '[]');
+  const totalLevels = 25;
+  const levelsDone = completedLevels.length;
+  const completionPercent = Math.floor((levelsDone / totalLevels) * 100);
+
+  const getCityVisual = (points) => {
+    if (points >= 500) return ["🌆","🏡","🌳","🌞"];
+    if (points >= 300) return ["🏡","🌳","🌞"];
+    if (points >= 200) return ["🏡","🌳"];
+    if (points >= 100) return ["🌳"];
+    return ["🌱"];
+  };
+
+  const getCityMessage = (points) => {
+    if (points >= 500) return "Full Eco City achieved!";
+    if (points >= 300) return "Solar-powered city emerging!";
+    if (points >= 200) return "Eco houses unlocked!";
+    if (points >= 100) return "Trees growing in your city!";
+    return "Start building your eco city!";
+  };
 
   const handleLogout = async () => {
     try { await logout(); } catch (e) { console.error(e); }
@@ -58,10 +86,33 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-3">
           <button
+            onClick={() => navigate('/news')}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-lg"
+          >
+            🌍 Environment News
+          </button>
+          <button
             onClick={() => navigate('/quiz')}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-eco-600 text-white hover:bg-eco-700 transition-all shadow-lg"
           >
             <FiPlay size={22} /> Start Quiz
+          </button>
+          <button
+            onClick={() => navigate('/city')}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg"
+          >
+            <FiMap size={22} /> View Eco City
+          </button>
+          <button
+            onClick={() => {
+              const points = localStorage.getItem('ecoPoints');
+              localStorage.clear();
+              if (points) localStorage.setItem('ecoPoints', points);
+              window.location.reload();
+            }}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-orange-200 text-orange-600 hover:bg-orange-50 transition-all bg-white"
+          >
+            Reset Progress
           </button>
           <button
             onClick={handleLogout}
@@ -77,7 +128,7 @@ export default function DashboardPage() {
         <StatCard icon={<FiZap size={26} />} label="Eco Points" value={ecoPoints} color="from-eco-400 to-eco-600" delay={0} />
         <StatCard icon={<FiTrendingUp size={26} />} label="Streak Days" value={`${streak} 🔥`} color="from-orange-400 to-red-500" delay={0.1} />
         <StatCard icon={<GiTreehouse size={26} />} label="Trees Planted" value={`${trees} 🌳`} color="from-green-500 to-emerald-600" delay={0.2} />
-        <StatCard icon={<FiAward size={26} />} label="Levels Done" value={`${completedLevels}/25`} color="from-purple-400 to-indigo-500" delay={0.3} />
+        <StatCard icon={<FiAward size={26} />} label="Levels Done" value={`${levelsDone}/${totalLevels}`} color="from-purple-400 to-indigo-500" delay={0.3} />
       </div>
 
       {/* Progress Section */}
@@ -101,42 +152,62 @@ export default function DashboardPage() {
           <div>
             <div className="flex justify-between mb-2">
               <span className="font-medium text-gray-600">Overall Completion</span>
-              <span className="font-bold text-eco-600">{Math.round((completedLevels / 25) * 100)}%</span>
+              <span className="font-bold text-eco-600">{completionPercent}%</span>
             </div>
             <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: `${(completedLevels / 25) * 100}%` }}></div>
+              <div className="progress-bar-fill" style={{ width: `${completionPercent}%` }}></div>
             </div>
           </div>
         </div>
       </motion.div>
 
       {/* Virtual Forest */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="eco-card p-8"
-      >
+      <div className="eco-card p-8 mb-10">
         <h3 className="text-2xl font-bold text-gray-800 mb-4">🌳 Your Virtual Forest</h3>
-        <p className="text-gray-500 mb-4">Earn 100 eco points to plant a tree!</p>
+        <p className="text-gray-500 mb-4">Earn 100 eco points to plant a tree! Total: {trees}</p>
         <div className="flex flex-wrap gap-3">
           {trees > 0 ? (
-            Array.from({ length: Math.min(trees, 50) }).map((_, i) => (
-              <motion.span
-                key={i}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                className="text-4xl"
-              >
-                🌳
-              </motion.span>
+            Array.from({ length: Math.min(trees, 100) }).map((_, i) => (
+              <span key={i} className="text-4xl">
+                {trees <= 2 ? '🌱' : trees <= 5 ? '🌳' : '🌲'}
+              </span>
             ))
           ) : (
             <p className="text-gray-400">No trees yet. Start completing quizzes to grow your forest! 🌱</p>
           )}
         </div>
-      </motion.div>
+      </div>
+
+      {/* Your Eco City Upgrade */}
+      <div style={{ marginTop: "30px", padding: "30px", background: "#111", borderRadius: "24px", color: "#fff", boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.3)" }}>
+        <h2 style={{ fontSize: "28px", fontWeight: "bold", margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+          Your Eco City 🌆
+        </h2>
+
+        <div style={{
+          display: "flex",
+          gap: "25px",
+          fontSize: "50px",
+          marginTop: "20px",
+          flexWrap: "wrap",
+          padding: "20px",
+          background: "rgba(255,255,255,0.05)",
+          borderRadius: "16px",
+          justifyContent: "center"
+        }}>
+          {getCityVisual(ecoPoints).map((item, i) => (
+            <span key={i} title={item}>{item}</span>
+          ))}
+        </div>
+
+        <p style={{ marginTop: "20px", fontSize: "18px", color: "#22c55e", fontWeight: "600", textAlign: "center" }}>
+          {getCityMessage(ecoPoints)}
+        </p>
+        
+        <p style={{ marginTop: "5px", fontSize: "14px", color: "rgba(255,255,255,0.4)", textAlign: "center" }}>
+          Current Progress: {ecoPoints} Eco Points
+        </p>
+      </div>
     </div>
   );
 }
