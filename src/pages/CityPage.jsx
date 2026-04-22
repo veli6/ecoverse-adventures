@@ -1,32 +1,27 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function CityPage() {
   const navigate = useNavigate();
+  const { userData } = useAuth();
 
-  // Fetch data from localStorage
-  const ecoPoints = parseInt(localStorage.getItem('ecoPoints') || '0');
-  const trees = parseInt(localStorage.getItem('trees') || '0');
+  // Fetch data from userData.progress (Firestore)
+  const progress = userData?.progress || {};
+  const ecoPoints = progress.ecoPoints || 0;
+  const trees = progress.trees || 0;
   
-  // Calculate completed levels from localStorage
-  // QuizPage saves as completedLevels_ThemeName: [1, 2, 3...]
-  // DashboardPage expects completedLevels: { ThemeName: count }
-  // We will check both patterns to be safe
-  const THEMES = ['Climate', 'Wildlife', 'Pollution', 'Water', 'Energy'];
+  // Calculate completed levels from userData.progress.completedLevels array
+  const completedLevels = progress.completedLevels || [];
   let maxLevelCompleted = 0;
 
-  THEMES.forEach(theme => {
-    const saved = JSON.parse(localStorage.getItem(`completedLevels_${theme}`) || '[]');
-    if (saved.length > 0) {
-      const highest = Math.max(...saved);
-      if (highest > maxLevelCompleted) maxLevelCompleted = highest;
+  completedLevels.forEach(levelKey => {
+    // levelKey is like "theme_level"
+    const parts = levelKey.split('_');
+    const level = parseInt(parts[parts.length - 1]);
+    if (!isNaN(level) && level > maxLevelCompleted) {
+      maxLevelCompleted = level;
     }
-  });
-
-  // Also check the general 'completedLevels' object if it exists
-  const localLevelsObj = JSON.parse(localStorage.getItem('completedLevels') || '{}');
-  Object.values(localLevelsObj).forEach(val => {
-    if (typeof val === 'number' && val > maxLevelCompleted) maxLevelCompleted = val;
   });
 
   const cityElements = [

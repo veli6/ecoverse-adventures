@@ -57,49 +57,31 @@ export default function EcoCityPage() {
   const navigate = useNavigate();
   const { currentUser, userData, refreshUserData } = useAuth();
 
-  const [islandSize, setIslandSize] = useState(5);
-  const [localPoints, setLocalPoints] = useState(0);
-
-  // Persistence: Load from Firestore + Local Fallback
-  useEffect(() => {
-    const savedSize = parseInt(localStorage.getItem('islandSize') || '5') || 5;
-    const quizPoints = parseInt(localStorage.getItem('ecoPoints') || '0') || 0;
-    setIslandSize(savedSize);
-    setLocalPoints(quizPoints);
-  }, []);
-
-  const totalPoints = (userData?.ecoPoints || 0) + localPoints;
+  // Fetch progress from userData (Firestore)
+  const progress = userData?.progress || { ecoPoints: 0, trees: 0, completedLevels: [], level: 1, islandSize: 5 };
+  const totalPoints = progress.ecoPoints || 0;
+  const islandSize = progress.islandSize || 5;
 
   const handleExpandCity = async () => {
     if (islandSize >= 8) return;
     if (totalPoints >= 200) {
-      // 1. Update Firestore
       if (currentUser) {
         try {
+          const updatedProgress = {
+            ...progress,
+            ecoPoints: totalPoints - 200,
+            islandSize: islandSize + 1
+          };
+          
           const userDoc = doc(db, 'users', currentUser.uid);
           await updateDoc(userDoc, {
-            ecoPoints: increment(-200)
+            progress: updatedProgress
           });
-          // Sync UI immediately
+          
           await refreshUserData();
         } catch (err) {
           console.error("Firestore expansion failed:", err);
         }
-      }
-
-      // 2. Update Local State
-      const newSize = islandSize + 1;
-      setIslandSize(newSize);
-      localStorage.setItem('islandSize', newSize.toString());
-
-      // If we used local points, subtract from there first
-      if (localPoints >= 200) {
-        const remainingLocal = localPoints - 200;
-        setLocalPoints(remainingLocal);
-        localStorage.setItem('ecoPoints', remainingLocal.toString());
-      } else {
-        // Points were mostly from Firebase, we don't subtract from local
-        // (Firestore update already handles the master balance)
       }
     }
   };
@@ -229,7 +211,7 @@ export default function EcoCityPage() {
             )}
           </button>
           <p className="text-gray-400 text-sm font-bold uppercase tracking-widest bg-black/20 px-4 py-1 rounded-full backdrop-blur-sm">
-            Planet Size: {islandSize}x{islandSize} • {totalPoints} Session Pts
+            Planet Size: {islandSize}x{islandSize} • {totalPoints} Eco Points
           </p>
         </div>
       </div>

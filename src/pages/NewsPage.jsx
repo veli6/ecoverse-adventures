@@ -2,18 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiExternalLink, FiRefreshCw } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
 
 // Fallback news in case RSS fails
 const FALLBACK_NEWS = [
-  { 
-    title: 'Global Coral Reefs Show Signs of Recovery', 
-    description: 'Scientists report coral reef recovery in several regions thanks to conservation efforts and reduced pollution.', 
+  {
+    title: 'Global Coral Reefs Show Signs of Recovery',
+    description: 'Scientists report coral reef recovery in several regions thanks to conservation efforts and reduced pollution.',
     link: 'https://news.google.com/search?q=coral+recovery',
     image: '🪸'
   },
-  { 
-    title: 'Electric Vehicles Outsell Gas Cars for First Time', 
-    description: 'EV sales have surpassed traditional combustion engine vehicles in multiple European countries.', 
+  {
+    title: 'Electric Vehicles Outsell Gas Cars for First Time',
+    description: 'EV sales have surpassed traditional combustion engine vehicles in multiple European countries.',
     link: 'https://news.google.com/search?q=ev+sales',
     image: '🚗'
   }
@@ -21,6 +22,7 @@ const FALLBACK_NEWS = [
 
 export default function NewsPage() {
   const navigate = useNavigate();
+  const { userData } = useAuth();
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,8 +31,8 @@ export default function NewsPage() {
     try {
       const newsModes = ["trending", "india", "user"];
       const mode = newsModes[Math.floor(Math.random() * newsModes.length)];
-      const selectedTheme = localStorage.getItem("selectedTheme") || "environment";
-      
+      const selectedTheme = userData?.selectedTheme || "environment";
+
       let query = "environment";
       if (mode === "trending") {
         query = "climate change OR global warming OR sustainability";
@@ -42,17 +44,21 @@ export default function NewsPage() {
 
       const RSS_URL = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-IN&gl=IN&ceid=IN:en`;
       const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
-      
-      const res = await fetch(url, { cache: "no-store" });
-      const data = await res.json();
 
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("Network response was not ok");
+
+      const data = await res.json();
       const items = data.items || [];
-      setNews(items.slice(0, 8));
-    } catch (err) {
-      console.error('RSS Fetch error:', err);
-      if (news.length === 0) {
+
+      if (items.length > 0) {
+        setNews(items.slice(0, 8));
+      } else {
         setNews(FALLBACK_NEWS);
       }
+    } catch (err) {
+      console.error('RSS Fetch error:', err);
+      setNews(FALLBACK_NEWS);
     } finally {
       setLoading(false);
     }
@@ -60,20 +66,20 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetchNews();
-  }, []);
+  }, [userData?.selectedTheme]); // Refresh if theme changes
 
   return (
     <div style={{ backgroundColor: '#0f172a', minHeight: '100vh', color: '#f8fafc', padding: '40px 20px', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <button 
-          onClick={() => navigate('/dashboard')} 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            color: '#22c55e', 
-            background: 'none', 
-            border: 'none', 
+        <button
+          onClick={() => navigate('/dashboard')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: '#22c55e',
+            background: 'none',
+            border: 'none',
             cursor: 'pointer',
             fontSize: '18px',
             marginBottom: '30px',
@@ -92,14 +98,14 @@ export default function NewsPage() {
               Dynamic updates from Google News RSS.
             </p>
           </div>
-          <button 
-            onClick={fetchNews} 
+          <button
+            onClick={fetchNews}
             disabled={loading}
-            style={{ 
-              padding: '12px', 
-              borderRadius: '12px', 
-              backgroundColor: '#1e293b', 
-              color: '#22c55e', 
+            style={{
+              padding: '12px',
+              borderRadius: '12px',
+              backgroundColor: '#1e293b',
+              color: '#22c55e',
               border: '1px solid #334155',
               cursor: 'pointer',
               display: 'flex',
@@ -118,15 +124,15 @@ export default function NewsPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {news.map((item, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                style={{ 
-                  backgroundColor: '#1e293b', 
-                  borderRadius: '20px', 
-                  padding: '24px', 
+                style={{
+                  backgroundColor: '#1e293b',
+                  borderRadius: '20px',
+                  padding: '24px',
                   border: '1px solid #334155',
                   transition: 'transform 0.2s',
                   cursor: 'default'
@@ -143,21 +149,21 @@ export default function NewsPage() {
                     <h3 style={{ fontSize: '22px', fontWeight: '700', margin: '8px 0', lineHeight: '1.3' }}>
                       {item.title}
                     </h3>
-                    <p 
+                    <p
                       style={{ color: '#94a3b8', fontSize: '16px', lineHeight: '1.5', margin: '0 0 20px 0' }}
                       dangerouslySetInnerHTML={{ __html: item.description }}
                     />
-                    <a 
-                      href={item.link} 
-                      target="_blank" 
+                    <a
+                      href={item.link}
+                      target="_blank"
                       rel="noopener noreferrer"
-                      style={{ 
-                        color: '#22c55e', 
-                        textDecoration: 'none', 
-                        fontWeight: 'bold', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px' 
+                      style={{
+                        color: '#22c55e',
+                        textDecoration: 'none',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}
                     >
                       Read Full Article <FiExternalLink />

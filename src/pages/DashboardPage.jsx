@@ -27,24 +27,16 @@ export default function DashboardPage() {
   const { userData, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch quiz points and levels from localStorage with safety
-  const quizPoints = parseInt(localStorage.getItem('ecoPoints') || '0') || 0;
-  const ecoPoints = (userData?.ecoPoints || 0) + quizPoints;
-  
+  // Use userData.progress directly from Firestore
+  const progress = userData?.progress || {};
+  const ecoPoints = progress.ecoPoints || 0;
   const streak = userData?.streakCount || 0;
+  const trees = progress.trees || 0;
   
-  // Calculate trees: 1 tree per 100 points
-  const trees = Math.floor(ecoPoints / 100) || 0;
-  
-  // Update localStorage to keep it in sync
-  if (parseInt(localStorage.getItem('trees') || '0') !== trees) {
-    localStorage.setItem('trees', trees.toString());
-  }
-
-  // Calculate completed levels from global array
-  const completedLevels = JSON.parse(localStorage.getItem('completedLevels') || '[]');
-  const totalLevels = 25;
+  // Calculate completed levels from userData.progress.completedLevels array
+  const completedLevels = progress.completedLevels || [];
   const levelsDone = completedLevels.length;
+  const totalLevels = 25;
   const completionPercent = Math.floor((levelsDone / totalLevels) * 100);
 
   const getCityVisual = (points) => {
@@ -105,10 +97,7 @@ export default function DashboardPage() {
           </button>
           <button
             onClick={() => {
-              const points = localStorage.getItem('ecoPoints');
-              localStorage.clear();
-              if (points) localStorage.setItem('ecoPoints', points);
-              window.location.reload();
+              alert("Progress reset is handled by account deletion or contacting support in this version.");
             }}
             className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-orange-200 text-orange-600 hover:bg-orange-50 transition-all bg-white"
           >

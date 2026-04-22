@@ -18,18 +18,20 @@ export const defaultUserData = {
   email: '',
   selectedTheme: null,
   selectedAgeGroup: null,
-  ecoPoints: 0,
   streakCount: 0,
   lastActiveDate: null,
-  treesCollected: 0,
-  completedLevels: {},
-  unlockedLevels: { plastic: [1], water: [1], climate: [1], energy: [1], wildlife: [1] },
-  levelStars: {},
   usedQuestionIds: [],
   unlockedRewards: [],
   ecoCityElements: {},
   timeMachineStatus: 'present',
   readNewsIds: [],
+  progress: {
+    ecoPoints: 0,
+    trees: 0,
+    completedLevels: [],
+    level: 1,
+    islandSize: 5
+  },
   createdAt: new Date().toISOString(),
 };
 
@@ -64,13 +66,22 @@ export async function updateUserData(uid, updates) {
 export async function addEcoPoints(uid, points) {
   const userData = await getUserData(uid);
   if (!userData) return;
-  const newPoints = (userData.ecoPoints || 0) + points;
+  
+  const currentProgress = userData.progress || defaultUserData.progress;
+  const newPoints = (currentProgress.ecoPoints || 0) + points;
   const newTrees = Math.floor(newPoints / 100);
-  await updateDoc(doc(db, USERS_COLLECTION, uid), {
+  
+  const updatedProgress = {
+    ...currentProgress,
     ecoPoints: newPoints,
-    treesCollected: newTrees,
+    trees: newTrees,
+  };
+
+  await updateDoc(doc(db, USERS_COLLECTION, uid), {
+    progress: updatedProgress
   });
-  return { ecoPoints: newPoints, treesCollected: newTrees };
+  
+  return updatedProgress;
 }
 
 export async function markQuestionUsed(uid, questionId) {
@@ -87,35 +98,28 @@ export async function completeLevel(uid, theme, level, stars, pointsEarned) {
   const userData = await getUserData(uid);
   if (!userData) return;
 
-  const completedLevels = userData.completedLevels || {};
-  const unlockedLevels = userData.unlockedLevels || {};
-  const levelStars = userData.levelStars || {};
-  const ecoCityElements = userData.ecoCityElements || {};
-
+  const currentProgress = userData.progress || defaultUserData.progress;
+  const completedLevels = currentProgress.completedLevels || [];
   const levelKey = `${theme}_${level}`;
-  completedLevels[levelKey] = true;
-  levelStars[levelKey] = Math.max(levelStars[levelKey] || 0, stars);
-
-  if (!unlockedLevels[theme]) unlockedLevels[theme] = [1];
-  if (level < 5 && !unlockedLevels[theme].includes(level + 1)) {
-    unlockedLevels[theme].push(level + 1);
+  
+  if (!completedLevels.includes(levelKey)) {
+    completedLevels.push(levelKey);
   }
 
-  const cityItems = ['park', 'solarHome', 'recyclingPlant', 'evStation', 'smartSystem'];
-  if (level <= cityItems.length) {
-    ecoCityElements[cityItems[level - 1]] = true;
-  }
-
-  const newPoints = (userData.ecoPoints || 0) + pointsEarned;
+  const newPoints = (currentProgress.ecoPoints || 0) + pointsEarned;
   const newTrees = Math.floor(newPoints / 100);
+  const nextLevel = Math.max(currentProgress.level || 1, level + 1);
+
+  const updatedProgress = {
+    ...currentProgress,
+    completedLevels,
+    ecoPoints: newPoints,
+    trees: newTrees,
+    level: nextLevel
+  };
 
   await updateDoc(doc(db, USERS_COLLECTION, uid), {
-    completedLevels,
-    unlockedLevels,
-    levelStars,
-    ecoCityElements,
-    ecoPoints: newPoints,
-    treesCollected: newTrees,
+    progress: updatedProgress
   });
 
   return getUserData(uid);

@@ -47,52 +47,48 @@ export function GameProvider({ children }) {
   }, [currentUser, refreshUserData]);
 
   const getCompletedLevelCount = useCallback(() => {
-    if (!userData?.completedLevels) return 0;
-    return Object.keys(userData.completedLevels).length;
+    if (!userData?.progress?.completedLevels) return 0;
+    return userData.progress.completedLevels.length;
   }, [userData]);
 
   const getCityProgress = useCallback(() => {
-    if (!userData?.ecoCityElements) return 0;
+    if (!userData?.progress?.completedLevels) return 0;
     const total = 5;
-    const built = Object.keys(userData.ecoCityElements).length;
+    // Map completed levels to city progress if needed, or just use count
+    const built = Math.min(userData.progress.completedLevels.length, total);
     return Math.round((built / total) * 100);
   }, [userData]);
 
   const getThemeProgress = useCallback((theme) => {
-    if (!userData?.completedLevels) return { completed: 0, total: 5 };
+    if (!userData?.progress?.completedLevels) return { completed: 0, total: 5 };
     let completed = 0;
-    for (let i = 1; i <= 5; i++) {
-      if (userData.completedLevels[`${theme}_${i}`]) completed++;
-    }
+    userData.progress.completedLevels.forEach(key => {
+      if (key.startsWith(`${theme}_`)) completed++;
+    });
     return { completed, total: 5 };
   }, [userData]);
 
   const isLevelUnlocked = useCallback((theme, level) => {
-    // Check localStorage for Phase 3 progress
-    const localCompleted = JSON.parse(localStorage.getItem('completedLevels') || '{}');
-    const themeCompleted = localCompleted[theme] || 0;
-    if (level <= themeCompleted + 1) return true;
-
-    // Fallback to existing logic
-    if (!userData?.unlockedLevels) return level === 1;
-    return userData.unlockedLevels[theme]?.includes(level) || false;
+    if (!userData?.progress) return level === 1;
+    
+    const completedLevels = userData.progress.completedLevels || [];
+    // A level is unlocked if it's Level 1 OR if the previous level is completed
+    if (level === 1) return true;
+    const prevLevelKey = `${theme}_${level - 1}`;
+    return completedLevels.includes(prevLevelKey);
   }, [userData]);
 
   const isLevelCompleted = useCallback((theme, level) => {
-    // Check localStorage for Phase 3 progress
-    const localCompleted = JSON.parse(localStorage.getItem('completedLevels') || '{}');
-    const themeCompleted = localCompleted[theme] || 0;
-    if (level <= themeCompleted) return true;
-
-    // Fallback to existing logic
-    if (!userData?.completedLevels) return false;
-    return !!userData.completedLevels[`${theme}_${level}`];
+    if (!userData?.progress?.completedLevels) return false;
+    return userData.progress.completedLevels.includes(`${theme}_${level}`);
   }, [userData]);
 
   const getLevelStars = useCallback((theme, level) => {
-    if (!userData?.levelStars) return 0;
-    return userData.levelStars[`${theme}_${level}`] || 0;
-  }, [userData]);
+    // levelStars was removed in favor of a simpler progress model as per request
+    // but if we need it, we can re-add it to progress object. 
+    // For now, return 0 or 3 based on completion
+    return isLevelCompleted(theme, level) ? 3 : 0;
+  }, [isLevelCompleted]);
 
   const value = {
     currentTheme,

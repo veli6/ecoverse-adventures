@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { db } from '../lib/firebase';
-import { doc, updateDoc, increment } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
-import questions from '../data/questions';
+import questionsData from '../data/questions';
 import { FiTrendingUp, FiStar, FiAward } from 'react-icons/fi';
+import { completeLevel, markQuestionUsed } from '../lib/userService';
 
 const THEMES = ['Climate', 'Wildlife', 'Pollution', 'Water', 'Energy'];
 const AGE_GROUPS = ['Kid', 'Teen', 'Adult'];
@@ -20,31 +19,25 @@ const CORRECT_MESSAGE = "Correct! 🌱 Earth approves your intelligence 😎";
 
 export default function QuizPage() {
   const navigate = useNavigate();
-  const auth = useAuth();
-  
-  // Safely get context values
-  const currentUser = auth?.currentUser;
-  const refreshUserData = auth?.refreshUserData;
+  const { currentUser, userData, refreshUserData } = useAuth();
 
   // Step state: 'selection', 'quiz', 'result'
   const [step, setStep] = useState('selection');
-  
+
   const [selectedTheme, setSelectedTheme] = useState('');
   const [selectedAge, setSelectedAge] = useState('');
   const [level, setLevel] = useState(1);
 
   // Quiz state
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState(null); 
+  const [feedback, setFeedback] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [showDidYouKnow, setShowDidYouKnow] = useState(false);
+  const [showResult, setShowResult] = useState(false);
 
   // Progress state
-  const [completedLevels, setCompletedLevels] = useState([]);
-  const [trees, setTrees] = useState(0);
-  const [ecoPoints, setEcoPoints] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,144 +46,138 @@ export default function QuizPage() {
       setLoading(false);
     }, 500);
 
-    const savedTrees = parseInt(localStorage.getItem('trees') || '0') || 0;
-    const savedPoints = parseInt(localStorage.getItem('ecoPoints') || '0') || 0;
-    setTrees(savedTrees);
-    setEcoPoints(savedPoints);
-
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    if (selectedTheme && selectedAge) {
-      const progress = JSON.parse(localStorage.getItem('ecoProgress') || '{}');
-      const key = `${selectedTheme}_${selectedAge}`;
-      const savedLevel = progress[key] || 1;
+    if (selectedTheme && selectedAge && userData?.progress) {
+      // Use the 'level' field from userData.progress which we now track in Firestore
+      const savedLevel = userData.progress.level || 1;
       setLevel(savedLevel);
-      
-      const savedCompleted = JSON.parse(localStorage.getItem(`completedLevels_${selectedTheme}_${selectedAge}`) || '[]');
-      setCompletedLevels(savedCompleted);
     }
-  }, [selectedTheme, selectedAge]);
+  }, [selectedTheme, selectedAge, userData]);
 
-  const startQuiz = () => {
+  const startQuiz = async () => {
     if (!selectedTheme || !selectedAge || !level) return;
-    
-    const filtered = (questions || []).filter(q => 
-      q.theme === selectedTheme && 
-      q.ageGroup === selectedAge &&
-      q.level === level
-    );
 
-    const shuffled = [...filtered].sort(() => 0.5 - Math.random()).slice(0, 5);
-    
-    setQuizQuestions(shuffled);
-    setCurrentIndex(0);
-    setScore(0);
-    setIsAnswered(false);
-    setFeedback(null);
-    setShowDidYouKnow(false);
-    setStep('quiz');
+    console.log("Fetching questions...");
+    setLoading(true);
+
+    try {
+      // 1. Normalize all keys before filtering
+      const key = `${selectedTheme}_${selectedAge}`.toLowerCase();
+
+      // 2. Ensure questions data keys are also accessed in lowercase
+      const allQuestions = (questionsData || []).reduce((acc, q) => {
+        const k = `${q.theme}_${q.ageGroup}`.toLowerCase();
+        if (!acc[k]) acc[k] = [];
+        acc[k].push(q);
+        return acc;
+      }, {});
+
+      let filteredByCategory = allQuestions[key] || [];
+      let filtered = filteredByCategory.filter(q => q.level === level);
+
+      console.log("Questions:", questions);
+      console.log("Filtered questions:", filtered);
+
+      // Fallback: If no questions found, use default set
+      if (filtered.length === 0) {
+        console.warn(`No questions found for key: ${key} level: ${level}. Using fallback.`);
+        const themeKey = selectedTheme.toLowerCase();
+        filtered = (questionsData || []).filter(q => q.theme.toLowerCase() === themeKey).slice(0, 5);
+
+        if (filtered.length === 0) {
+          filtered = (questionsData || []).slice(0, 5);
+        }
+      }
+
+      const shuffled = [...filtered].sort(() => 0.5 - Math.random()).slice(0, 5);
+
+      setQuestions(shuffled || []);
+      setCurrentQuestion(0);
+      setScore(0);
+      setIsAnswered(false);
+      setFeedback(null);
+      setShowDidYouKnow(false);
+      setShowResult(false);
+      setStep('quiz');
+    } catch (error) {
+      console.error("Quiz error:", error);
+      // Fallback in case of error
+      setQuestions((questionsData || []).slice(0, 5));
+      setShowResult(false);
+      setStep('quiz');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAnswer = (optionIndex) => {
-    if (isAnswered || !quizQuestions[currentIndex]) return;
+  const handleAnswer = async (optionIndex) => {
+    try {
+      if (isAnswered || !questions?.[currentQuestion]) return;
 
-    const currentQ = quizQuestions[currentIndex];
-    const correct = optionIndex === currentQ.correctAnswer;
+      const currentQ = questions[currentQuestion] || {};
+      const correct = optionIndex === currentQ.correctAnswer;
 
-    setIsAnswered(true);
-    setShowDidYouKnow(true);
+      setIsAnswered(true);
+      setShowDidYouKnow(true);
 
-    if (correct) {
-      setScore(prev => prev + 10);
-      setFeedback({ 
-        isCorrect: true, 
-        selectedIndex: optionIndex,
-        message: CORRECT_MESSAGE,
-        points: "+10 Eco Points",
-        explanation: currentQ.explanation,
-        source: currentQ.source
-      });
-    } else {
-      const randomMsg = FUNNY_WRONG_MESSAGES[Math.floor(Math.random() * FUNNY_WRONG_MESSAGES.length)];
-      setFeedback({ 
-        isCorrect: false, 
-        selectedIndex: optionIndex,
-        message: randomMsg,
-        correctAnswerText: currentQ.options[currentQ.correctAnswer],
-        explanation: currentQ.explanation,
-        source: currentQ.source
-      });
-    }
+      if (correct) {
+        setScore(prev => prev + 10);
+        setFeedback({
+          isCorrect: true,
+          selectedIndex: optionIndex,
+          message: CORRECT_MESSAGE,
+          points: "+10 Eco Points",
+          explanation: currentQ.explanation,
+          source: currentQ.source
+        });
+      } else {
+        const randomMsg = FUNNY_WRONG_MESSAGES[Math.floor(Math.random() * FUNNY_WRONG_MESSAGES.length)];
+        setFeedback({
+          isCorrect: false,
+          selectedIndex: optionIndex,
+          message: randomMsg,
+          correctAnswerText: currentQ.options ? currentQ.options[currentQ.correctAnswer] : "Unknown",
+          explanation: currentQ.explanation,
+          source: currentQ.source
+        });
+      }
 
-    const usedIds = JSON.parse(localStorage.getItem('usedQuestionIds') || '[]');
-    if (!usedIds.includes(currentQ.id)) {
-      usedIds.push(currentQ.id);
-      localStorage.setItem('usedQuestionIds', JSON.stringify(usedIds));
+      if (currentUser && currentQ.id) {
+        await markQuestionUsed(currentUser.uid, currentQ.id);
+      }
+    } catch (err) {
+      console.error("Answer error:", err);
+      // If something crashes in answer handling, ensure we can still move forward
+      setShowResult(true);
     }
   };
 
   const nextQuestion = async () => {
-    if (currentIndex + 1 < quizQuestions.length) {
-      setCurrentIndex(prev => prev + 1);
+    console.log("Questions:", questions);
+    console.log("Current Index:", currentQuestion);
+    console.log("Show Result:", showResult);
+
+    if (currentQuestion + 1 < (questions?.length || 0)) {
+      setCurrentQuestion(prev => prev + 1);
       setIsAnswered(false);
       setFeedback(null);
       setShowDidYouKnow(false);
     } else {
       // End of Quiz
-      if (currentUser && db) {
+      if (currentUser) {
         try {
-          const userDoc = doc(db, 'users', currentUser.uid);
-          await updateDoc(userDoc, {
-            ecoPoints: increment(score),
-            treesCollected: increment(Math.floor(score / 50))
-          });
+          const stars = Math.ceil((score / 50) * 3); // 0-50 -> 0-3 stars
+          await completeLevel(currentUser.uid, selectedTheme.toLowerCase(), level, stars, score);
           if (refreshUserData) await refreshUserData();
         } catch (err) {
           console.error("Firestore sync failed:", err);
         }
       }
 
-      const totalPoints = (parseInt(localStorage.getItem('ecoPoints') || '0') || 0) + score;
-      localStorage.setItem('ecoPoints', totalPoints.toString());
-      setEcoPoints(totalPoints);
-      
-      const totalTrees = Math.floor(totalPoints / 100) || 0;
-      localStorage.setItem('trees', totalTrees.toString());
-      setTrees(totalTrees);
-
-      if (score >= 30) { 
-        // 1. Update theme-specific progress (for unlocking next level)
-        const key = `${selectedTheme}_${selectedAge}`;
-        const savedThemeProgress = JSON.parse(localStorage.getItem(`completedLevels_${key}`) || '[]');
-        if (!savedThemeProgress.includes(level)) {
-          const newThemeProgress = [...savedThemeProgress, level];
-          setCompletedLevels(newThemeProgress);
-          localStorage.setItem(`completedLevels_${key}`, JSON.stringify(newThemeProgress));
-        }
-
-        // 2. Update global completedLevels (for Dashboard stats)
-        const globalKey = 'completedLevels';
-        const globalProgress = JSON.parse(localStorage.getItem(globalKey) || '[]');
-        const levelIdentifier = `${selectedTheme}_${selectedAge}_${level}`;
-        if (!globalProgress.includes(levelIdentifier)) {
-          globalProgress.push(levelIdentifier);
-          localStorage.setItem(globalKey, JSON.stringify(globalProgress));
-        }
-      }
-
-      const progress = JSON.parse(localStorage.getItem('ecoProgress') || '{}');
-      const key = `${selectedTheme}_${selectedAge}`;
-      const currentUnlocked = progress[key] || 1;
-      
-      if (level === currentUnlocked) {
-        const nextLevel = Math.min(currentUnlocked + 1, 5);
-        progress[key] = nextLevel;
-        localStorage.setItem('ecoProgress', JSON.stringify(progress));
-        setLevel(nextLevel);
-      }
-      
+      setShowResult(true);
       setStep('result');
     }
   };
@@ -232,7 +219,7 @@ export default function QuizPage() {
           </div>
         </div>
         {selectedTheme && (
-           <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <p style={{ fontWeight: 'bold' }}>Select Level:</p>
             <div style={{ display: 'flex', gap: '8px' }}>
               {[1, 2, 3, 4, 5].map(lvl => (
@@ -247,19 +234,38 @@ export default function QuizPage() {
   }
 
   if (step === 'quiz') {
-    const q = quizQuestions[currentIndex];
+    if (loading) {
+      return <div style={{ padding: '40px', textAlign: 'center' }}>Loading Quiz...</div>;
+    }
+
+    if (!questions || questions.length === 0) {
+      return <div style={{ padding: '40px', textAlign: 'center' }}>No questions available</div>;
+    }
+
+    if (showResult || currentQuestion >= questions.length) {
+      return (
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <h2>Quiz Completed</h2>
+          <p>Your Score: {score}</p>
+          <button onClick={() => navigate('/dashboard')} style={{ padding: '10px 20px', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '8px' }}>Return to Dashboard</button>
+        </div>
+      );
+    }
+
+    const q = questions[currentQuestion] || {};
+    if (!q || !q.question) return <div style={{ padding: '40px', textAlign: 'center' }}>Question loading error...</div>;
     if (!q) return <div style={{ padding: '40px', textAlign: 'center' }}>No questions found.</div>;
     return (
       <div style={{ padding: '20px', maxWidth: '700px', margin: '0 auto', fontFamily: 'sans-serif' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
           <p style={{ color: '#64748b' }}>{selectedTheme} • Level {level}</p>
-          <p style={{ fontWeight: 'bold', color: '#22c55e' }}>Question {currentIndex + 1}/5</p>
+          <p style={{ fontWeight: 'bold', color: '#22c55e' }}>Question {currentQuestion + 1}/{questions?.length}</p>
         </div>
-        
+
         <h2 style={{ fontSize: '24px', marginBottom: '24px', lineHeight: '1.4' }}>{q.question}</h2>
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-          {q.options.map((opt, idx) => {
+          {(q.options || []).map((opt, idx) => {
             let bgColor = 'white';
             let borderColor = '#ddd';
             if (isAnswered) {
@@ -273,15 +279,15 @@ export default function QuizPage() {
             }
 
             return (
-              <button 
-                key={idx} 
-                onClick={() => handleAnswer(idx)} 
-                disabled={isAnswered} 
-                style={{ 
-                  padding: '16px', 
-                  textAlign: 'left', 
-                  borderRadius: '12px', 
-                  border: `2px solid ${borderColor}`, 
+              <button
+                key={idx}
+                onClick={() => handleAnswer(idx)}
+                disabled={isAnswered}
+                style={{
+                  padding: '16px',
+                  textAlign: 'left',
+                  borderRadius: '12px',
+                  border: `2px solid ${borderColor}`,
                   backgroundColor: bgColor,
                   fontSize: '18px',
                   cursor: isAnswered ? 'default' : 'pointer',
@@ -295,20 +301,20 @@ export default function QuizPage() {
         </div>
 
         {isAnswered && feedback && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{ 
-              padding: '20px', 
-              borderRadius: '12px', 
+            style={{
+              padding: '20px',
+              borderRadius: '12px',
               backgroundColor: feedback.isCorrect ? '#f0fdf4' : '#fff1f2',
               border: `1px solid ${feedback.isCorrect ? '#22c55e' : '#f87171'}`,
               marginBottom: '20px'
             }}
           >
-            <p style={{ 
-              fontSize: '20px', 
-              fontWeight: 'bold', 
+            <p style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
               color: feedback.isCorrect ? '#166534' : '#991b1b',
               margin: '0 0 10px 0'
             }}>
@@ -331,42 +337,42 @@ export default function QuizPage() {
         )}
 
         {isAnswered && (
-          <button 
-            onClick={nextQuestion} 
-            style={{ 
-              padding: '18px', 
-              width: '100%', 
-              borderRadius: '12px', 
-              backgroundColor: '#22c55e', 
-              color: 'white', 
-              fontSize: '20px', 
+          <button
+            onClick={nextQuestion}
+            style={{
+              padding: '18px',
+              width: '100%',
+              borderRadius: '12px',
+              backgroundColor: '#22c55e',
+              color: 'white',
+              fontSize: '20px',
               fontWeight: 'bold',
               border: 'none',
               cursor: 'pointer',
               boxShadow: '0 4px 6px -1px rgba(34, 197, 94, 0.2)'
             }}
           >
-            {currentIndex + 1 < quizQuestions.length ? 'Next Question' : 'See My Results'}
+            {currentQuestion + 1 < questions?.length ? 'Next Question' : 'See My Results'}
           </button>
         )}
       </div>
     );
   }
 
-  if (step === 'result') {
+  if ((showResult || step === 'result') && questions.length > 0) {
     return (
       <div style={{ padding: '60px 20px', maxWidth: '600px', margin: '0 auto', textAlign: 'center', fontFamily: 'sans-serif' }}>
         <h1 style={{ fontSize: '40px', marginBottom: '10px' }}>
           {score >= 30 ? 'Level Cleared! 🏆' : 'Keep Learning! 🌱'}
         </h1>
         <p style={{ fontSize: '18px', color: '#64748b', marginBottom: '40px' }}>{selectedTheme} • Level {level}</p>
-        
-        <div style={{ 
-          backgroundColor: '#f8fafc', 
-          padding: '40px', 
-          borderRadius: '24px', 
-          border: '1px solid #e2e8f0', 
-          marginBottom: '40px' 
+
+        <div style={{
+          backgroundColor: '#f8fafc',
+          padding: '40px',
+          borderRadius: '24px',
+          border: '1px solid #e2e8f0',
+          marginBottom: '40px'
         }}>
           <p style={{ fontSize: '20px', margin: '0 0 10px 0', color: '#475569' }}>Your Score</p>
           <p style={{ fontSize: '72px', fontWeight: 'bold', margin: '0 0 10px 0', color: '#166534' }}>
@@ -375,40 +381,40 @@ export default function QuizPage() {
           <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#22c55e' }}>
             +{score} Eco Points Earned! 🌟
           </p>
-          
+
           <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center', gap: '10px', fontSize: '40px' }}>
-            {getCityElements(ecoPoints).map((el, i) => (
+            {getCityElements(score).map((el, i) => (
               <span key={i} title="Your City Assets">{el}</span>
             ))}
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <button 
-            onClick={() => navigate('/city')} 
-            style={{ 
-              padding: '18px', 
-              backgroundColor: '#166534', 
-              color: 'white', 
-              borderRadius: '16px', 
-              border: 'none', 
-              fontSize: '20px', 
+          <button
+            onClick={() => navigate('/city')}
+            style={{
+              padding: '18px',
+              backgroundColor: '#166534',
+              color: 'white',
+              borderRadius: '16px',
+              border: 'none',
+              fontSize: '20px',
               fontWeight: 'bold',
               cursor: 'pointer'
             }}
           >
             🏙️ View My Eco City
           </button>
-          
-          <button 
-            onClick={() => setStep('selection')} 
-            style={{ 
-              padding: '18px', 
-              backgroundColor: 'white', 
-              color: '#22c55e', 
-              borderRadius: '16px', 
-              border: '2px solid #22c55e', 
-              fontSize: '20px', 
+
+          <button
+            onClick={() => setStep('selection')}
+            style={{
+              padding: '18px',
+              backgroundColor: 'white',
+              color: '#22c55e',
+              borderRadius: '16px',
+              border: '2px solid #22c55e',
+              fontSize: '20px',
               fontWeight: 'bold',
               cursor: 'pointer'
             }}
@@ -416,11 +422,11 @@ export default function QuizPage() {
             Play Another Level
           </button>
 
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            style={{ 
-              padding: '15px', 
-              color: '#64748b', 
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              padding: '15px',
+              color: '#64748b',
               backgroundColor: 'transparent',
               border: 'none',
               fontSize: '16px',
