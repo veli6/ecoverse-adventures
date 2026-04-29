@@ -206,6 +206,7 @@ export default function DashboardPage() {
           <ActionButton label="Eco City" icon={<FiMap size={16} />} gradient="linear-gradient(135deg, #3b82f6, #1d4ed8)" onClick={() => navigate('/city')} />
           <ActionButton label="Carbon Calculator" icon={<FiTrendingUp size={16} />} gradient="linear-gradient(135deg, #f59e0b, #d97706)" onClick={() => navigate('/carbon')} />
           <ActionButton label="Environment News" icon="🌐" gradient="linear-gradient(135deg, #8b5cf6, #6d28d9)" onClick={() => navigate('/news')} />
+          <ActionButton label="Time Machine" icon="⏳" gradient="linear-gradient(135deg, #06b6d4, #0891b2)" onClick={() => navigate('/time-machine')} />
         </motion.div>
 
         {/* ── STATS GRID ── */}

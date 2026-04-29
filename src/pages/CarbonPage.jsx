@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
+import { updateUserData } from '../lib/userService';
 
 const QUESTIONS = [
   {
@@ -93,6 +95,7 @@ function getTipKey(score) {
 
 export default function CarbonPage() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -104,7 +107,7 @@ export default function CarbonPage() {
   const handleSelect = (score, idx) => {
     setSelectedOption(idx);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const newAnswers = [...answers, score];
       setAnswers(newAnswers);
       setSelectedOption(null);
@@ -112,6 +115,10 @@ export default function CarbonPage() {
       if (currentQ + 1 < QUESTIONS.length) {
         setCurrentQ(prev => prev + 1);
       } else {
+        const finalScore = newAnswers.reduce((s, a) => s + a, 0);
+        if (currentUser) {
+          try { await updateUserData(currentUser.uid, { carbonScore: finalScore }); } catch (_) {}
+        }
         setShowResult(true);
       }
     }, 400);

@@ -25,6 +25,7 @@ export const defaultUserData = {
   ecoCityElements: {},
   timeMachineStatus: 'present',
   readNewsIds: [],
+  carbonScore: null,
   progress: {
     ecoPoints: 0,
     trees: 0,
@@ -131,12 +132,12 @@ export async function markNewsRead(uid, newsId) {
   const read = userData.readNewsIds || [];
   if (!read.includes(newsId)) {
     read.push(newsId);
-    const newPoints = (userData.ecoPoints || 0) + 5;
+    const currentProgress = userData.progress || defaultUserData.progress;
+    const newPoints = (currentProgress.ecoPoints || 0) + 5;
     const newTrees = Math.floor(newPoints / 100);
     await updateDoc(doc(db, USERS_COLLECTION, uid), {
       readNewsIds: read,
-      ecoPoints: newPoints,
-      treesCollected: newTrees,
+      progress: { ...currentProgress, ecoPoints: newPoints, trees: newTrees },
     });
   }
 }
@@ -167,7 +168,7 @@ export async function updateStreak(uid) {
 export async function getLeaderboard(count = 20) {
   const q = query(
     collection(db, USERS_COLLECTION),
-    orderBy('ecoPoints', 'desc'),
+    orderBy('progress.ecoPoints', 'desc'),
     limit(count)
   );
   const snapshot = await getDocs(q);

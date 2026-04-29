@@ -44,7 +44,7 @@ export default function LeaderboardPage() {
             <div className="w-14 h-14 rounded-full bg-eco-500 flex items-center justify-center text-white font-bold text-xl">#{myRank}</div>
             <div>
               <p className="font-bold text-gray-800">Your Rank</p>
-              <p className="text-eco-600 font-semibold">{userData?.ecoPoints || 0} eco points</p>
+              <p className="text-eco-600 font-semibold">{userData?.progress?.ecoPoints || 0} eco points</p>
             </div>
           </div>
         </motion.div>
@@ -63,7 +63,7 @@ export default function LeaderboardPage() {
                 transition={{ delay: idx * 0.2 }} className="flex flex-col items-center">
                 <span className="text-3xl mb-2">{medals[l.rank - 1]}</span>
                 <p className="font-bold text-gray-800 text-center" style={{ maxWidth: 100 }}>{l.username || 'EcoWarrior'}</p>
-                <p className="text-eco-600 font-semibold">{l.ecoPoints} pts</p>
+                <p className="text-eco-600 font-semibold">{l.progress?.ecoPoints || 0} pts</p>
                 <div className={`${h} w-24 bg-gradient-to-t from-eco-600 to-eco-400 rounded-t-xl mt-2 flex items-center justify-center`}>
                   <span className="text-white font-bold text-2xl">#{l.rank}</span>
                 </div>
@@ -89,9 +89,9 @@ export default function LeaderboardPage() {
               </div>
               <div className="flex-1">
                 <p className="font-bold text-gray-800">{l.username || 'EcoWarrior'}</p>
-                <p className="text-gray-500">🌳 {l.treesCollected || 0} trees</p>
+                <p className="text-gray-500">🌳 {l.progress?.trees || 0} trees</p>
               </div>
-              <span className="font-bold text-eco-600">{l.ecoPoints} pts</span>
+              <span className="font-bold text-eco-600">{l.progress?.ecoPoints || 0} pts</span>
             </motion.div>
           ))}
         </div>

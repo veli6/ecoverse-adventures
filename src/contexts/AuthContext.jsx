@@ -68,7 +68,6 @@ export function AuthProvider({ children }) {
   }
 
   async function loginWithGoogle() {
-    console.log('[DEBUG] Firebase API Key:', auth.app.options.apiKey);
     const cred = await signInWithPopup(auth, googleProvider);
     let data = await getUserData(cred.user.uid);
     if (!data) {

@@ -76,7 +76,6 @@ export default function QuizPage() {
   const startQuiz = async () => {
     if (!selectedTheme || !selectedAge || !level) return;
 
-    console.log("Fetching questions...");
     setLoading(true);
 
     try {
@@ -94,8 +93,6 @@ export default function QuizPage() {
       let filteredByCategory = allQuestions[key] || [];
       let filtered = filteredByCategory.filter(q => q.level === level);
 
-      console.log("Questions:", questions);
-      console.log("Filtered questions:", filtered);
 
       // Fallback: If no questions found, use default set
       if (filtered.length === 0) {
@@ -180,9 +177,6 @@ export default function QuizPage() {
   };
 
   const nextQuestion = async () => {
-    console.log("Questions:", questions);
-    console.log("Current Index:", currentQuestion);
-    console.log("Show Result:", showResult);
 
     if (currentQuestion + 1 < (questions?.length || 0)) {
       setCurrentQuestion(prev => prev + 1);

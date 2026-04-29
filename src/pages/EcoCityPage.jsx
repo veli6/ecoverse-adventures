@@ -144,7 +144,6 @@ export default function EcoCityPage() {
         {/* Animated Background Atmosphere */}
         <div className="absolute inset-0">
           <div className={`absolute inset-0 opacity-40 transition-opacity duration-1000 ${isMetropolis ? 'bg-[radial-gradient(circle_at_50%_50%,#1e3a8a_0%,#020617_100%)]' : 'bg-[radial-gradient(circle_at_50%_50%,#166534_0%,#0f172a_100%)]'}`} />
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
         </div>
 
         {/* The Tiny Planet Wrapper */}
@@ -156,7 +155,6 @@ export default function EcoCityPage() {
         >
           {/* The Core Sphere */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1b431b] via-[#0f2a0f] to-[#0a1a0a] rounded-full border-[10px] border-[#254d25] shadow-[0_0_100px_rgba(34,197,94,0.3)]">
-            <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] rounded-full" />
             {/* Core Glow */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.1),transparent)] rounded-full" />
           </div>
