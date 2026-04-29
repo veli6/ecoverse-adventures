@@ -1,4 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
 import { FiLogOut, FiZap, FiTrendingUp, FiAward, FiPlay, FiMap, FiActivity } from 'react-icons/fi';
 import { GiTreehouse } from 'react-icons/gi';
@@ -13,11 +14,11 @@ function StatCard({ icon, label, value, gradient, delay }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.45, ease: 'easeOut' }}
       style={{
-        background: 'white',
+        background: 'var(--bg-card)',
         borderRadius: '20px',
         padding: '24px 20px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-        border: '1px solid #f1f5f9',
+        border: '1px solid var(--border-card)',
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
@@ -41,8 +42,8 @@ function StatCard({ icon, label, value, gradient, delay }) {
         {icon}
       </div>
       <div>
-        <p style={{ fontSize: '13px', fontWeight: '600', color: '#94a3b8', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</p>
-        <p style={{ fontSize: '26px', fontWeight: '800', color: '#1e293b', margin: '2px 0 0 0', lineHeight: 1.1 }}>{value}</p>
+        <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</p>
+        <p style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text)', margin: '2px 0 0 0', lineHeight: 1.1 }}>{value}</p>
       </div>
     </motion.div>
   );
@@ -197,6 +198,7 @@ function CO2TrackerWidget() {
 
 export default function DashboardPage() {
   const { userData, logout } = useAuth();
+  const { dark, toggle } = useTheme();
   const navigate = useNavigate();
 
   // Use userData.progress directly from Firestore
@@ -234,7 +236,7 @@ export default function DashboardPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #f8fafc 50%, #eff6ff 100%)',
+      background: 'var(--bg)',
       fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
     }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '32px 24px 60px' }}>
@@ -258,7 +260,7 @@ export default function DashboardPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '22px', boxShadow: '0 4px 12px rgba(34,197,94,0.3)',
               }}>🌍</div>
-              <h1 style={{ fontSize: '28px', fontWeight: '800', margin: 0, color: '#0f172a' }}>
+              <h1 style={{ fontSize: '28px', fontWeight: '800', margin: 0, color: 'var(--text)' }}>
                 Eco<span style={{ color: '#22c55e' }}>Verse</span>
               </h1>
             </div>
@@ -268,13 +270,24 @@ export default function DashboardPage() {
           </div>
 
           {/* Logout + Reset */}
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={toggle}
+              title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={{
+                width: 38, height: 38, borderRadius: '10px', fontSize: '18px',
+                border: '1.5px solid #e2e8f0', backgroundColor: dark ? '#1e293b' : 'white',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              {dark ? '☀️' : '🌙'}
+            </button>
             <button
               onClick={() => alert("Progress reset is handled by account deletion or contacting support in this version.")}
               style={{
                 padding: '9px 16px', borderRadius: '10px', fontSize: '13px',
                 fontWeight: '600', border: '1.5px solid #fed7aa',
-                color: '#ea580c', backgroundColor: 'white', cursor: 'pointer',
+                color: '#ea580c', backgroundColor: 'var(--bg-card)', cursor: 'pointer',
               }}
             >
               Reset Progress
@@ -284,8 +297,8 @@ export default function DashboardPage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
                 padding: '9px 16px', borderRadius: '10px', fontSize: '13px',
-                fontWeight: '600', border: '1.5px solid #e2e8f0',
-                color: '#64748b', backgroundColor: 'white', cursor: 'pointer',
+                fontWeight: '600', border: '1.5px solid var(--border-card)',
+                color: 'var(--text-muted)', backgroundColor: 'var(--bg-card)', cursor: 'pointer',
               }}
             >
               <FiLogOut size={15} /> Logout
@@ -331,8 +344,8 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
             style={{
-              background: 'white', borderRadius: '20px', padding: '28px',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9',
+              background: 'var(--bg-card)', borderRadius: '20px', padding: '28px',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid var(--border-card)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
@@ -341,7 +354,7 @@ export default function DashboardPage() {
                 background: 'linear-gradient(135deg,#22c55e,#16a34a)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px',
               }}>📊</div>
-              <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#1e293b', margin: 0 }}>Progress Overview</h3>
+              <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text)', margin: 0 }}>Progress Overview</h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <ProgressBar
@@ -367,8 +380,8 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             style={{
-              background: 'white', borderRadius: '20px', padding: '28px',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid #f1f5f9',
+              background: 'var(--bg-card)', borderRadius: '20px', padding: '28px',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '1px solid var(--border-card)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -377,7 +390,7 @@ export default function DashboardPage() {
                 background: 'linear-gradient(135deg,#10b981,#059669)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px',
               }}>🌳</div>
-              <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#1e293b', margin: 0 }}>Your Virtual Forest</h3>
+              <h3 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text)', margin: 0 }}>Your Virtual Forest</h3>
             </div>
             <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '16px', marginTop: '4px' }}>
               Earn 100 eco points to plant a tree · Total: <strong style={{ color: '#16a34a' }}>{trees}</strong>
