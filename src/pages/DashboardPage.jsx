@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiLogOut, FiZap, FiTrendingUp, FiAward, FiPlay, FiMap, FiActivity } from 'react-icons/fi';
 import { GiTreehouse } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom';
+import { useCO2Data } from '../hooks/useCO2Data';
 
 // ─── Stat Card ─────────────────────────────────────────────────────────────────
 function StatCard({ icon, label, value, gradient, delay }) {
@@ -95,6 +96,105 @@ function ProgressBar({ label, value, max, suffix, color }) {
 }
 
 // ─── Main Dashboard ─────────────────────────────────────────────────────────────
+// ─── CO2 Tracker Widget ─────────────────────────────────────────────────────────
+function CO2TrackerWidget() {
+  const { data, loading } = useCO2Data();
+
+  // Inline sparkline SVG
+  const Sparkline = ({ points }) => {
+    if (!points?.length) return null;
+    const ppms = points.map(p => p.ppm);
+    const min = Math.min(...ppms) - 1;
+    const max = Math.max(...ppms) + 1;
+    const w = 200, h = 48;
+    const coords = ppms.map((v, i) => {
+      const x = (i / (ppms.length - 1)) * w;
+      const y = h - ((v - min) / (max - min)) * h;
+      return `${x},${y}`;
+    });
+    return (
+      <svg width={w} height={h} style={{ overflow: 'visible' }}>
+        <polyline points={coords.join(' ')} fill="none" stroke="#f97316" strokeWidth="2" strokeLinejoin="round" />
+        {/* last dot */}
+        <circle cx={coords[coords.length - 1].split(',')[0]} cy={coords[coords.length - 1].split(',')[1]} r="3" fill="#f97316" />
+      </svg>
+    );
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.52 }}
+      style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1c1917 100%)',
+        borderRadius: '20px', padding: '24px 28px',
+        color: 'white', marginTop: '20px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        border: '1px solid rgba(249,115,22,0.2)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        {/* Left: live reading */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 16 }}>🌡️</span>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#f97316', textTransform: 'uppercase', letterSpacing: 1, margin: 0 }}>
+              Live Atmospheric CO₂
+            </p>
+            <span style={{ fontSize: 10, color: '#64748b', background: '#1e293b', padding: '2px 8px', borderRadius: 99 }}>
+              Mauna Loa, NOAA
+            </span>
+          </div>
+          {loading ? (
+            <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Fetching live data...</p>
+          ) : !data ? (
+            <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Data unavailable</p>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontSize: 48, fontWeight: 800, color: '#f97316', lineHeight: 1 }}>
+                  {data.latestPpm.toFixed(1)}
+                </span>
+                <span style={{ fontSize: 16, color: '#94a3b8', fontWeight: 600 }}>ppm</span>
+              </div>
+              <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+                {data.annualIncrease !== null && (
+                  <div>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: 0.5 }}>vs last year</p>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#fb923c', margin: 0 }}>+{data.annualIncrease} ppm</p>
+                  </div>
+                )}
+                {data.decadeIncrease !== null && (
+                  <div>
+                    <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: 0.5 }}>vs 10 yrs ago</p>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#ef4444', margin: 0 }}>+{data.decadeIncrease} ppm</p>
+                  </div>
+                )}
+              </div>
+              <p style={{ fontSize: 11, color: '#475569', marginTop: 8 }}>Week of {data.date}</p>
+            </>
+          )}
+        </div>
+
+        {/* Right: sparkline */}
+        {!loading && data?.sparkline?.length > 1 && (
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: 11, color: '#64748b', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              10-year trend
+            </p>
+            <Sparkline points={data.sparkline} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+              <span style={{ fontSize: 10, color: '#475569' }}>{data.sparkline[0]?.year}</span>
+              <span style={{ fontSize: 10, color: '#475569' }}>{data.sparkline[data.sparkline.length - 1]?.year}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 export default function DashboardPage() {
   const { userData, logout } = useAuth();
   const navigate = useNavigate();
@@ -378,6 +478,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </motion.div>
+
+        {/* ── CO2 TRACKER ── */}
+        <CO2TrackerWidget />
 
       </div>
     </div>
