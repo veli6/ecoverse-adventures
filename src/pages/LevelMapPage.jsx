@@ -97,7 +97,10 @@ export default function LevelMapPage() {
                 style={{ width: 'fit-content' }}
               >
                 <motion.button
-                  onClick={() => unlocked && navigate(`/quiz/${theme}/${level}`)}
+                  onClick={() => {
+                    if (!isLevelUnlocked(theme, level)) return;
+                    navigate(`/quiz/${theme}/${level}`);
+                  }}
                   disabled={!unlocked}
                   className={`level-node ${completed ? 'level-node-completed' : isCurrent ? 'level-node-current' : 'level-node-locked'}`}
                   whileHover={unlocked ? { scale: 1.15 } : {}}

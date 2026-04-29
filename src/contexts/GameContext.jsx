@@ -63,24 +63,31 @@ export function GameProvider({ children }) {
     if (!userData?.progress?.completedLevels) return { completed: 0, total: 5 };
     let completed = 0;
     userData.progress.completedLevels.forEach(key => {
-      if (key.startsWith(`${theme}_`)) completed++;
+      if (key.toLowerCase().startsWith(`${theme.toLowerCase()}_`)) completed++;
     });
     return { completed, total: 5 };
   }, [userData]);
 
   const isLevelUnlocked = useCallback((theme, level) => {
-    if (!userData?.progress) return level === 1;
-    
-    const completedLevels = userData.progress.completedLevels || [];
-    // A level is unlocked if it's Level 1 OR if the previous level is completed
+    if (!userData || !userData.progress || !userData.progress.completedLevels) {
+      return level === 1;
+    }
+
+    const completedLevels = (userData.progress.completedLevels || []).map(k => k.toLowerCase());
+
+    // Level 1 always unlocked
     if (level === 1) return true;
-    const prevLevelKey = `${theme}_${level - 1}`;
-    return completedLevels.includes(prevLevelKey);
+
+    const prevLevelKey = `${theme.toLowerCase()}_${level - 1}`;
+
+    return completedLevels.map(k => k.toLowerCase()).includes(prevLevelKey);
   }, [userData]);
 
   const isLevelCompleted = useCallback((theme, level) => {
     if (!userData?.progress?.completedLevels) return false;
-    return userData.progress.completedLevels.includes(`${theme}_${level}`);
+    return userData.progress.completedLevels
+      .map(k => k.toLowerCase())
+      .includes(`${theme.toLowerCase()}_${level}`);
   }, [userData]);
 
   const getLevelStars = useCallback((theme, level) => {

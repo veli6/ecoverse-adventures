@@ -5,6 +5,10 @@ import { useAuth } from '../contexts/AuthContext';
 import questionsData from '../data/questions';
 import { FiTrendingUp, FiStar, FiAward } from 'react-icons/fi';
 import { completeLevel, markQuestionUsed } from '../lib/userService';
+import { useGame } from "../contexts/GameContext";
+import { useParams } from "react-router-dom";
+
+
 
 const THEMES = ['Climate', 'Wildlife', 'Pollution', 'Water', 'Energy'];
 const AGE_GROUPS = ['Kid', 'Teen', 'Adult'];
@@ -19,7 +23,9 @@ const CORRECT_MESSAGE = "Correct! 🌱 Earth approves your intelligence 😎";
 
 export default function QuizPage() {
   const navigate = useNavigate();
+  const { isLevelUnlocked, isLevelCompleted } = useGame();
   const { currentUser, userData, refreshUserData } = useAuth();
+  const { theme: routeTheme, level: routeLevel } = useParams();
 
   // Step state: 'selection', 'quiz', 'result'
   const [step, setStep] = useState('selection');
@@ -40,22 +46,32 @@ export default function QuizPage() {
   // Progress state
   const [loading, setLoading] = useState(true);
 
+  // Initial loading timer
   useEffect(() => {
-    // Initial loading
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
-
     return () => clearTimeout(timer);
   }, []);
 
+  // If navigated via /quiz/:theme/:level, auto-configure and start
   useEffect(() => {
-    if (selectedTheme && selectedAge && userData?.progress) {
-      // Use the 'level' field from userData.progress which we now track in Firestore
-      const savedLevel = userData.progress.level || 1;
-      setLevel(savedLevel);
+    if (!routeTheme || !routeLevel) return; // No route params = show selection screen
+
+    const numLevel = Number(routeLevel);
+    if (!numLevel || numLevel < 1 || numLevel > 5) return;
+
+    if (!isLevelUnlocked(routeTheme.toLowerCase(), numLevel)) {
+      navigate("/dashboard");
+      return;
     }
-  }, [selectedTheme, selectedAge, userData]);
+
+    // Auto-configure from URL params
+    setSelectedTheme(routeTheme.toLowerCase());
+    setSelectedAge(userData?.selectedAgeGroup || 'Kid');
+    setLevel(numLevel);
+    setStep('quiz');
+  }, [routeTheme, routeLevel, isLevelUnlocked, navigate, userData]);
 
   const startQuiz = async () => {
     if (!selectedTheme || !selectedAge || !level) return;
@@ -113,7 +129,15 @@ export default function QuizPage() {
     }
   };
 
+  useEffect(() => {
+    // Automatically start quiz if we navigated directly via URL params and questions are not loaded yet
+    if (step === 'quiz' && questions.length === 0 && selectedTheme && selectedAge && level) {
+      startQuiz();
+    }
+  }, [step, questions.length, selectedTheme, selectedAge, level]);
+
   const handleAnswer = async (optionIndex) => {
+
     try {
       if (isAnswered || !questions?.[currentQuestion]) return;
 
@@ -222,13 +246,41 @@ export default function QuizPage() {
           <div style={{ marginBottom: '24px' }}>
             <p style={{ fontWeight: 'bold' }}>Select Level:</p>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {[1, 2, 3, 4, 5].map(lvl => (
-                <button key={lvl} onClick={() => setLevel(lvl)} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid #22c55e', backgroundColor: level === lvl ? '#22c55e' : 'white', color: level === lvl ? 'white' : '#22c55e' }}>{lvl}</button>
-              ))}
+              {[1, 2, 3, 4, 5].map(lvl => {
+                const unlocked = isLevelUnlocked(selectedTheme.toLowerCase(), lvl);
+                const completed = isLevelCompleted(selectedTheme.toLowerCase(), lvl);
+                return (
+                  <button
+                    key={lvl}
+                    onClick={() => {
+                      if (unlocked) {
+                        setLevel(lvl);
+                      } else {
+                        alert(`Level ${lvl} is locked! Complete Level ${lvl - 1} first.`);
+                      }
+                    }}
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '50%',
+                      border: `2px solid ${!unlocked ? '#d1d5db' : level === lvl ? '#22c55e' : '#22c55e'}`,
+                      backgroundColor: !unlocked ? '#f3f4f6' : level === lvl ? '#22c55e' : 'white',
+                      color: !unlocked ? '#9ca3af' : level === lvl ? 'white' : '#22c55e',
+                      cursor: unlocked ? 'pointer' : 'not-allowed',
+                      fontWeight: 'bold',
+                      fontSize: '14px',
+                      position: 'relative',
+                    }}
+                  >
+                    {!unlocked ? '🔒' : completed ? '✓' : lvl}
+                  </button>
+                );
+              })}
             </div>
+            <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>Complete levels in order to unlock the next one.</p>
           </div>
         )}
-        <button onClick={startQuiz} disabled={!selectedTheme || !selectedAge} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: 'none', backgroundColor: '#22c55e', color: 'white', fontWeight: 'bold' }}>Start Quiz</button>
+        <button onClick={startQuiz} disabled={!selectedTheme || !selectedAge || !level} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: 'none', backgroundColor: (!selectedTheme || !selectedAge || !level) ? '#94a3b8' : '#22c55e', color: 'white', fontWeight: 'bold', cursor: (!selectedTheme || !selectedAge || !level) ? 'not-allowed' : 'pointer' }}>Start Quiz</button>
       </div>
     );
   }
@@ -359,7 +411,7 @@ export default function QuizPage() {
     );
   }
 
-  if ((showResult || step === 'result') && questions.length > 0) {
+  if (showResult || step === 'result') {
     return (
       <div style={{ padding: '60px 20px', maxWidth: '600px', margin: '0 auto', textAlign: 'center', fontFamily: 'sans-serif' }}>
         <h1 style={{ fontSize: '40px', marginBottom: '10px' }}>
@@ -441,5 +493,13 @@ export default function QuizPage() {
     );
   }
 
-  return null;
+  // Fallback: should never reach here, but prevent blank screen
+  return (
+    <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px', fontFamily: 'sans-serif' }}>
+      <p style={{ color: '#64748b' }}>Something went wrong.</p>
+      <button onClick={() => navigate('/dashboard')} style={{ padding: '10px 20px', backgroundColor: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+        Return to Dashboard
+      </button>
+    </div>
+  );
 }
